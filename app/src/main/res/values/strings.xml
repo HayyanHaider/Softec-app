@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Softec</string>
+    <string name="default_web_client_id" translatable="false">AIzaSyDuD2H1BKpv5lBRI4glQFE1D8Uige6x9jE</string>
 </resources>
