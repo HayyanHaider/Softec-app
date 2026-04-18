@@ -7,6 +7,9 @@ sealed interface Screen {
     data object Splash : Screen
 
     @Serializable
+    data object Auth : Screen
+
+    @Serializable
     data object Customers : Screen
 
     @Serializable
