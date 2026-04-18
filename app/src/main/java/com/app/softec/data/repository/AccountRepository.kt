@@ -4,6 +4,7 @@ import com.app.softec.data.local.dao.AccountDao
 import com.app.softec.data.local.entity.AccountEntity
 import com.app.softec.data.mapper.AccountMappers.toEntity
 import com.app.softec.data.mapper.AccountMappers.toDomain
+import com.app.softec.data.mapper.AccountMappers.toFirestore
 import com.app.softec.domain.model.Account
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
@@ -73,7 +74,7 @@ class AccountRepository @Inject constructor(
             try {
                 firestore.collection("users").document(userId)
                     .collection("accounts").document(entity.id)
-                    .set(entity.toEntity(""))
+                    .set(entity.toFirestore())
                     .await()
                 
                 // Mark as synced

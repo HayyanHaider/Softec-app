@@ -4,6 +4,7 @@ import com.app.softec.data.local.dao.PaymentHistoryDao
 import com.app.softec.data.local.entity.PaymentHistoryEntity
 import com.app.softec.data.mapper.PaymentHistoryMappers.toEntity
 import com.app.softec.data.mapper.PaymentHistoryMappers.toDomain
+import com.app.softec.data.mapper.PaymentHistoryMappers.toFirestore
 import com.app.softec.domain.model.PaymentHistory
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
@@ -57,7 +58,7 @@ class PaymentRepository @Inject constructor(
             try {
                 firestore.collection("users").document(userId)
                     .collection("payments").document(entity.id)
-                    .set(entity.toEntity(""))
+                    .set(entity.toFirestore())
                     .await()
                 
                 // Mark as synced

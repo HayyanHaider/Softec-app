@@ -4,6 +4,7 @@ import com.app.softec.data.local.dao.FollowUpDao
 import com.app.softec.data.local.entity.FollowUpEntity
 import com.app.softec.data.mapper.FollowUpMappers.toEntity
 import com.app.softec.data.mapper.FollowUpMappers.toDomain
+import com.app.softec.data.mapper.FollowUpMappers.toFirestore
 import com.app.softec.domain.model.FollowUp
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.flow.Flow
@@ -71,7 +72,7 @@ class FollowUpRepository @Inject constructor(
             try {
                 firestore.collection("users").document(userId)
                     .collection("followUps").document(entity.id)
-                    .set(entity.toEntity(""))
+                    .set(entity.toFirestore())
                     .await()
                 
                 // Mark as synced
