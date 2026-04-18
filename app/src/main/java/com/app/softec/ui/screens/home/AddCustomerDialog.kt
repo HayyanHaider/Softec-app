@@ -19,18 +19,23 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun AddCustomerDialog(
+    title: String = "Add Customer",
+    initialName: String = "",
+    initialPhone: String = "",
+    initialEmail: String = "",
+    submitLabel: String = "Save",
     onDismiss: () -> Unit,
     onSubmit: (name: String, phone: String, email: String) -> Unit
 ) {
-    var name by rememberSaveable { mutableStateOf("") }
-    var phone by rememberSaveable { mutableStateOf("") }
-    var email by rememberSaveable { mutableStateOf("") }
+    var name by rememberSaveable { mutableStateOf(initialName) }
+    var phone by rememberSaveable { mutableStateOf(initialPhone) }
+    var email by rememberSaveable { mutableStateOf(initialEmail) }
     var attemptedSubmit by rememberSaveable { mutableStateOf(false) }
     val isNameInvalid = attemptedSubmit && name.isBlank()
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(text = "Add Customer") },
+        title = { Text(text = title) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 OutlinedTextField(
@@ -75,7 +80,7 @@ fun AddCustomerDialog(
                     onSubmit(name.trim(), phone.trim(), email.trim())
                 }
             ) {
-                Text("Save")
+                Text(submitLabel)
             }
         },
         dismissButton = {

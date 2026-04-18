@@ -93,6 +93,32 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun updateCustomer(
+        item: SyncItemEntity,
+        name: String,
+        phone: String,
+        email: String
+    ) {
+        if (name.isBlank()) {
+            return
+        }
+
+        viewModelScope.launch {
+            val notes = buildList {
+                if (phone.isNotBlank()) add("Phone: $phone")
+                if (email.isNotBlank()) add("Email: $email")
+            }.joinToString(separator = " • ")
+
+            val updatedItem = item.copy(
+                title = name.trim(),
+                notes = notes.ifBlank { null },
+                updatedAt = Date(),
+                isSynced = false
+            )
+            syncItemRepository.upsert(updatedItem)
+        }
+    }
+
     fun deleteCustomer(item: SyncItemEntity) {
         viewModelScope.launch {
             val result = syncItemRepository.delete(item)
