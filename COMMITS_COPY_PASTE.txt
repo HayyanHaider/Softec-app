@@ -1,0 +1,18 @@
+COMMIT 1:
+git add app/src/main/java/com/app/softec/data/local/entity/AccountEntity.kt app/src/main/java/com/app/softec/data/local/entity/FollowUpEntity.kt app/src/main/java/com/app/softec/data/local/entity/PaymentHistoryEntity.kt && git commit -m "Add database entities"
+
+COMMIT 2:
+git add app/src/main/java/com/app/softec/data/local/dao/AccountDao.kt app/src/main/java/com/app/softec/data/local/dao/FollowUpDao.kt app/src/main/java/com/app/softec/data/local/dao/PaymentHistoryDao.kt app/src/main/java/com/app/softec/data/local/AppDatabase.kt && git commit -m "Add DAOs and database config"
+
+COMMIT 3:
+git add app/src/main/java/com/app/softec/data/remote/firestore/AccountFirestore.kt app/src/main/java/com/app/softec/data/remote/firestore/FollowUpFirestore.kt app/src/main/java/com/app/softec/data/remote/firestore/PaymentHistoryFirestore.kt && git commit -m "Add Firestore models"
+
+COMMIT 4:
+git add app/src/main/java/com/app/softec/data/mapper/AccountMappers.kt app/src/main/java/com/app/softec/data/mapper/FollowUpMappers.kt app/src/main/java/com/app/softec/data/mapper/PaymentHistoryMappers.kt app/src/main/java/com/app/softec/domain/model/Account.kt app/src/main/java/com/app/softec/domain/model/FollowUp.kt app/src/main/java/com/app/softec/domain/model/PaymentHistory.kt app/src/main/java/com/app/softec/domain/model/DashboardSummary.kt && git commit -m "Add mappers and domain models"
+
+PUSH:
+git push origin feature/database-schema
+
+MERGE:
+git checkout main && git merge feature/database-schema && git push origin main
+
