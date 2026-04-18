@@ -1,0 +1,9 @@
+REPOSITORIES COMMIT:
+git add app/src/main/java/com/app/softec/data/repository/AccountRepository.kt app/src/main/java/com/app/softec/data/repository/FollowUpRepository.kt app/src/main/java/com/app/softec/data/repository/PaymentRepository.kt app/src/main/java/com/app/softec/data/repository/SyncRepository.kt app/src/main/java/com/app/softec/core/di/RepositoryModule.kt && git commit -m "Add repositories with Firestore sync"
+
+THEN PUSH:
+git push origin feature/repositories
+
+THEN MERGE:
+git checkout main && git merge feature/repositories && git push origin main
+
