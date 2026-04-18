@@ -80,15 +80,8 @@ class HomeViewModel @Inject constructor(
             return true
         }
 
-        return when (val signInResult = authRepository.signInAnonymously()) {
-            is Resource.Success -> true
-            is Resource.Error -> {
-                _uiState.value = UiState.Error(signInResult.message)
-                false
-            }
-
-            is Resource.Loading -> false
-        }
+        _uiState.value = UiState.Error("Sign in to start syncing your data")
+        return false
     }
 
     private fun Resource<List<SyncItemEntity>>.toUiState(): UiState<List<SyncItemEntity>> {
