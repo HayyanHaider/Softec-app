@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CopilotDiffPersistence">
+    <option name="pendingDiffs">
+      <map>
+        <entry key="$PROJECT_DIR$/COMMITS_COPY_PASTE.txt">
+          <value>
+            <PendingDiffInfo>
+              <option name="filePath" value="$PROJECT_DIR$/COMMITS_COPY_PASTE.txt" />
+              <option name="updatedContent" value="COMMIT 1:&#10;git add app/src/main/java/com/app/softec/data/local/entity/AccountEntity.kt app/src/main/java/com/app/softec/data/local/entity/FollowUpEntity.kt app/src/main/java/com/app/softec/data/local/entity/PaymentHistoryEntity.kt &amp;&amp; git commit -m &quot;Add database entities&quot;&#10;&#10;COMMIT 2:&#10;git add app/src/main/java/com/app/softec/data/local/dao/AccountDao.kt app/src/main/java/com/app/softec/data/local/dao/FollowUpDao.kt app/src/main/java/com/app/softec/data/local/dao/PaymentHistoryDao.kt app/src/main/java/com/app/softec/data/local/AppDatabase.kt &amp;&amp; git commit -m &quot;Add DAOs and database config&quot;&#10;&#10;COMMIT 3:&#10;git add app/src/main/java/com/app/softec/data/remote/firestore/AccountFirestore.kt app/src/main/java/com/app/softec/data/remote/firestore/FollowUpFirestore.kt app/src/main/java/com/app/softec/data/remote/firestore/PaymentHistoryFirestore.kt &amp;&amp; git commit -m &quot;Add Firestore models&quot;&#10;&#10;COMMIT 4:&#10;git add app/src/main/java/com/app/softec/data/mapper/AccountMappers.kt app/src/main/java/com/app/softec/data/mapper/FollowUpMappers.kt app/src/main/java/com/app/softec/data/mapper/PaymentHistoryMappers.kt app/src/main/java/com/app/softec/domain/model/Account.kt app/src/main/java/com/app/softec/domain/model/FollowUp.kt app/src/main/java/com/app/softec/domain/model/PaymentHistory.kt app/src/main/java/com/app/softec/domain/model/DashboardSummary.kt &amp;&amp; git commit -m &quot;Add mappers and domain models&quot;&#10;&#10;PUSH:&#10;git push origin feature/database-schema&#10;&#10;MERGE:&#10;git checkout main &amp;&amp; git merge feature/database-schema &amp;&amp; git push origin main&#10;" />
+            </PendingDiffInfo>
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+</project>
