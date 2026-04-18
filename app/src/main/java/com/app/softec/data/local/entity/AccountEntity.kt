@@ -8,9 +8,6 @@ import java.util.Date
 data class AccountEntity(
     @PrimaryKey val id: String,
     val customerId: String,
-    val customerName: String,
-    val contactNumber: String,
-    val email: String? = null,
     val totalAmountDue: Double,
     val amountPaid: Double = 0.0,
     val amountRemaining: Double,

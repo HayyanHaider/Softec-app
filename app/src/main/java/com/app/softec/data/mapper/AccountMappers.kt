@@ -11,9 +11,6 @@ object AccountMappers {
     fun AccountEntity.toDomain(): Account = Account(
         id = id,
         customerId = customerId,
-        customerName = customerName,
-        contactNumber = contactNumber,
-        email = email,
         totalAmountDue = totalAmountDue,
         amountPaid = amountPaid,
         amountRemaining = amountRemaining,
@@ -30,9 +27,6 @@ object AccountMappers {
     fun Account.toEntity(userId: String): AccountEntity = AccountEntity(
         id = id.ifEmpty { UUID.randomUUID().toString() },
         customerId = customerId,
-        customerName = customerName,
-        contactNumber = contactNumber,
-        email = email,
         totalAmountDue = totalAmountDue,
         amountPaid = amountPaid,
         amountRemaining = amountRemaining,
@@ -49,9 +43,6 @@ object AccountMappers {
     fun AccountEntity.toFirestore(): AccountFirestore = AccountFirestore(
         id = id,
         customerId = customerId,
-        customerName = customerName,
-        contactNumber = contactNumber,
-        email = email,
         totalAmountDue = totalAmountDue,
         amountPaid = amountPaid,
         amountRemaining = amountRemaining,
@@ -68,9 +59,6 @@ object AccountMappers {
     fun AccountFirestore.toEntity(userId: String): AccountEntity = AccountEntity(
         id = id,
         customerId = customerId,
-        customerName = customerName,
-        contactNumber = contactNumber,
-        email = email,
         totalAmountDue = totalAmountDue,
         amountPaid = amountPaid,
         amountRemaining = amountRemaining,

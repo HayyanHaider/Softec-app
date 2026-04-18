@@ -7,9 +7,6 @@ import kotlinx.serialization.Serializable
 data class AccountFirestore(
     @DocumentId val id: String = "",
     val customerId: String = "",
-    val customerName: String = "",
-    val contactNumber: String = "",
-    val email: String? = null,
     val totalAmountDue: Double = 0.0,
     val amountPaid: Double = 0.0,
     val amountRemaining: Double = 0.0,
