@@ -20,7 +20,7 @@ import com.app.softec.data.local.entity.SyncItemEntity
         FollowUpEntity::class,
         PaymentHistoryEntity::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(RoomConverters::class)

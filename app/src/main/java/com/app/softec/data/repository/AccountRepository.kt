@@ -24,6 +24,11 @@ class AccountRepository @Inject constructor(
         accountDao.getAllAccountsByUser(userId).map { entities ->
             entities.map { it.toDomain() }
         }
+
+    fun getAccountsByCustomerId(customerId: String): Flow<List<Account>> =
+        accountDao.getAccountsByCustomerId(customerId).map { entities ->
+            entities.map { it.toDomain() }
+        }
     
     // Get overdue accounts
     fun getOverdueAccounts(userId: String): Flow<List<Account>> =

@@ -26,6 +26,9 @@ interface AccountDao {
     @Query("SELECT * FROM accounts WHERE userId = :userId")
     fun getAllAccountsByUser(userId: String): Flow<List<AccountEntity>>
 
+    @Query("SELECT * FROM accounts WHERE customerId = :customerId")
+    fun getAccountsByCustomerId(customerId: String): Flow<List<AccountEntity>>
+
     @Query("SELECT * FROM accounts WHERE userId = :userId AND status = 'overdue'")
     fun getOverdueAccounts(userId: String): Flow<List<AccountEntity>>
 
