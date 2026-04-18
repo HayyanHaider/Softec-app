@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -40,24 +42,19 @@ private data class TopLevelDestination(
 
 private val topLevelDestinations = listOf(
     TopLevelDestination(
-        screen = Screen.Home,
-        label = "Home",
-        icon = Icons.Filled.Home
-    ),
-    TopLevelDestination(
-        screen = Screen.Explore,
-        label = "Explore",
-        icon = Icons.Filled.Explore
-    ),
-    TopLevelDestination(
-        screen = Screen.Alerts,
-        label = "Alerts",
-        icon = Icons.Filled.Notifications
-    ),
-    TopLevelDestination(
-        screen = Screen.Profile,
-        label = "Profile",
+        screen = Screen.Customers,
+        label = "Customers",
         icon = Icons.Filled.Person
+    ),
+    TopLevelDestination(
+        screen = Screen.Invoices,
+        label = "Invoice",
+        icon = Icons.Filled.Inventory
+    ),
+    TopLevelDestination(
+        screen = Screen.Settings,
+        label = "Settings",
+        icon = Icons.Filled.Settings
     )
 )
 
@@ -79,16 +76,16 @@ fun AppNavHost(
         composable<Screen.Splash> {
             HackathonSplashScreen(
                 onAnimationComplete = {
-                    navController.navigate(Screen.Home) {
+                    navController.navigate(Screen.Customers) {
                         popUpTo(Screen.Splash) { inclusive = true }
                         launchSingleTop = true
                     }
                 }
             )
         }
-        composable<Screen.Home> {
+        composable<Screen.Customers> {
             TopLevelScreen(
-                title = "Home",
+                title = "Customers",
                 currentDestination = currentDestination,
                 onSelectTab = navActions::navigateToBottomTab
             ) { innerPadding ->
@@ -100,9 +97,9 @@ fun AppNavHost(
                 )
             }
         }
-        composable<Screen.Explore> {
+        composable<Screen.Invoices> {
             TopLevelScreen(
-                title = "Explore",
+                title = "Invoices",
                 currentDestination = currentDestination,
                 onSelectTab = navActions::navigateToBottomTab
             ) { innerPadding ->
@@ -114,9 +111,9 @@ fun AppNavHost(
                 )
             }
         }
-        composable<Screen.Alerts> {
+        composable<Screen.Settings> {
             TopLevelScreen(
-                title = "Alerts",
+                title = "Settings",
                 currentDestination = currentDestination,
                 onSelectTab = navActions::navigateToBottomTab
             ) { innerPadding ->
@@ -205,9 +202,9 @@ private fun TabPlaceholder(
 
 private fun NavDestination?.isTopLevelDestinationSelected(screen: Screen): Boolean {
     return when (screen) {
-        Screen.Home -> this?.hierarchy?.any { it.hasRoute<Screen.Home>() } == true
-        Screen.Explore -> this?.hierarchy?.any { it.hasRoute<Screen.Explore>() } == true
-        Screen.Alerts -> this?.hierarchy?.any { it.hasRoute<Screen.Alerts>() } == true
+        Screen.Customers -> this?.hierarchy?.any { it.hasRoute<Screen.Customers>() } == true
+        Screen.Invoices -> this?.hierarchy?.any { it.hasRoute<Screen.Invoices>() } == true
+        Screen.Settings -> this?.hierarchy?.any { it.hasRoute<Screen.Settings>() } == true
         Screen.Profile -> this?.hierarchy?.any { it.hasRoute<Screen.Profile>() } == true
         else -> false
     }

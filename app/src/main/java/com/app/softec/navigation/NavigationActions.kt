@@ -13,7 +13,7 @@ class NavigationActions(private val navController: NavController) {
 
     fun navigateToBottomTab(screen: Screen) {
         navController.navigate(screen) {
-            popUpTo(Screen.Home) {
+            popUpTo(Screen.Customers) {
                 saveState = true
             }
             launchSingleTop = true

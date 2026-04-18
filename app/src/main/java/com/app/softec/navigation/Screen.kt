@@ -7,13 +7,13 @@ sealed interface Screen {
     data object Splash : Screen
 
     @Serializable
-    data object Home : Screen
+    data object Customers : Screen
 
     @Serializable
-    data object Explore : Screen
+    data object Invoices : Screen
 
     @Serializable
-    data object Alerts : Screen
+    data object Settings : Screen
 
     @Serializable
     data class Details(val id: String) : Screen

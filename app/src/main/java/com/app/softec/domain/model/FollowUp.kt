@@ -9,7 +9,7 @@ data class FollowUp(
     val followUpDate: Date,
     val status: String, // "pending", "contacted", "completed", "rescheduled"
     val outcome: String? = null, // "no_response", "promise_to_pay", "paid_partial", "paid_full"
-    val contactMethod: String? = null, // "call", "whatsapp", "sms"
+    val contactMethod: String? = null,        // "call", "whatsapp", "sms"
     val suggestedMessage: String? = null,
     val actualMessage: String? = null,
     val promiseDate: Date? = null,

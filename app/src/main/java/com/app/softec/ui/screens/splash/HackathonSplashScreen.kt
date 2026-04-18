@@ -112,7 +112,7 @@ fun HackathonSplashScreen(
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Hackathon Starter",
+                text = "Invoice Manager",
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
