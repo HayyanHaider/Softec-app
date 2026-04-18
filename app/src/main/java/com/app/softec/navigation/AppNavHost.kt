@@ -42,6 +42,7 @@ import com.app.softec.ui.screens.auth.AuthScreen
 import com.app.softec.ui.screens.auth.SessionState
 import com.app.softec.ui.screens.auth.SessionViewModel
 import com.app.softec.ui.screens.home.HomeDataScreen
+import com.app.softec.ui.screens.invoices.OverdueAccountsScreen
 import com.app.softec.ui.screens.splash.HackathonSplashScreen
 import com.app.softec.ui.theme.spacing
 
@@ -168,15 +169,14 @@ fun AppNavHost(
         }
         composable<Screen.Invoices> {
             TopLevelScreen(
-                title = "Invoices",
+                title = "Overdue Accounts",
                 currentDestination = currentDestination,
                 onSelectTab = navActions::navigateToBottomTab
             ) { innerPadding ->
-                TabPlaceholder(
+                OverdueAccountsScreen(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(innerPadding),
-                    message = "Explore ideas, tasks, and experiments."
+                        .padding(innerPadding)
                 )
             }
         }

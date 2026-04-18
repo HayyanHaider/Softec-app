@@ -3,6 +3,10 @@ package com.app.softec.core.di
 import android.content.Context
 import androidx.room.Room
 import com.app.softec.data.local.AppDatabase
+import com.app.softec.data.local.dao.AccountDao
+import com.app.softec.data.local.dao.CustomerDao
+import com.app.softec.data.local.dao.FollowUpDao
+import com.app.softec.data.local.dao.PaymentHistoryDao
 import com.app.softec.data.local.dao.SyncItemDao
 import dagger.Module
 import dagger.Provides
@@ -33,6 +37,30 @@ object DatabaseModule {
     @Singleton
     fun provideSyncItemDao(database: AppDatabase): SyncItemDao {
         return database.syncItemDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideAccountDao(database: AppDatabase): AccountDao {
+        return database.accountDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideFollowUpDao(database: AppDatabase): FollowUpDao {
+        return database.followUpDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePaymentHistoryDao(database: AppDatabase): PaymentHistoryDao {
+        return database.paymentHistoryDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideCustomerDao(database: AppDatabase): CustomerDao {
+        return database.customerDao()
     }
 
     private const val DATABASE_NAME = "softec.db"
