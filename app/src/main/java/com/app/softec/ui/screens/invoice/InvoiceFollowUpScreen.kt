@@ -1,23 +1,37 @@
 package com.app.softec.ui.screens.invoice
 
+import android.app.DatePickerDialog
 import android.content.ActivityNotFoundException
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AssistChip
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Phone
+import androidx.compose.material.icons.filled.Schedule
+import androidx.compose.material.icons.filled.Sms
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -25,11 +39,16 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.core.ui.components.StandardScaffold
 import com.app.softec.ui.theme.spacing
+import java.util.Calendar
+import java.util.Date
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -73,7 +92,7 @@ fun InvoiceFollowUpScreen(
                 }
             }
 
-            state.errorMessage != null -> {
+            state.errorMessage != null && state.accountId == null -> {
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -99,100 +118,197 @@ fun InvoiceFollowUpScreen(
                         .padding(MaterialTheme.spacing.medium),
                     verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
                 ) {
-                    Text(
-                        text = "Customer",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Text(
-                        text = state.customerName,
-                        style = MaterialTheme.typography.titleLarge
-                    )
-
-                    Text(
-                        text = "Contact: ${state.contactNumber.ifBlank { "N/A" }}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Text(
-                        text = "Email: ${state.customerEmail ?: "N/A"}",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-
-                    Text(
-                        text = "Send Via",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
-                    ) {
-                        FilterChip(
-                            selected = state.selectedChannel == FollowUpContactChannel.WHATSAPP,
-                            onClick = { viewModel.updateFollowUpChannel(FollowUpContactChannel.WHATSAPP) },
-                            label = { Text("WhatsApp") }
+                    FollowUpSectionCard(title = "Customer") {
+                        Text(
+                            text = state.customerName,
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.SemiBold
                         )
-                        FilterChip(
-                            selected = state.selectedChannel == FollowUpContactChannel.SMS,
-                            onClick = { viewModel.updateFollowUpChannel(FollowUpContactChannel.SMS) },
-                            label = { Text("SMS") }
-                        )
-                        FilterChip(
-                            selected = state.selectedChannel == FollowUpContactChannel.EMAIL,
-                            onClick = { viewModel.updateFollowUpChannel(FollowUpContactChannel.EMAIL) },
-                            label = { Text("Email") }
-                        )
-                    }
 
-                    Text(
-                        text = "Reminder Message",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    OutlinedTextField(
-                        value = state.draftMessage,
-                        onValueChange = viewModel::updateDraftMessage,
-                        modifier = Modifier.fillMaxWidth(),
-                        minLines = 5,
-                        placeholder = {
-                            Text("Enter a professional follow-up message")
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+                        ) {
+                            FollowUpInfoPill(
+                                icon = Icons.Default.Phone,
+                                text = state.contactNumber.ifBlank { "No phone" }
+                            )
+                            FollowUpInfoPill(
+                                icon = Icons.Default.Email,
+                                text = state.customerEmail ?: "No email"
+                            )
                         }
-                    )
+                    }
 
-                    Text(
-                        text = "Schedule Next Follow-Up",
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    FlowRow(
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
-                    ) {
-                        AssistChip(
-                            onClick = { viewModel.updateFollowUpInterval(1) },
-                            label = { Text("+1 day") }
-                        )
-                        AssistChip(
-                            onClick = { viewModel.updateFollowUpInterval(3) },
-                            label = { Text("+3 days") }
-                        )
-                        AssistChip(
-                            onClick = { viewModel.updateFollowUpInterval(7) },
-                            label = { Text("+7 days") }
-                        )
-                        AssistChip(
-                            onClick = { viewModel.updateFollowUpInterval(null) },
-                            label = { Text("Auto") }
+                    FollowUpSectionCard(title = "Send Via") {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+                        ) {
+                            FilterChip(
+                                selected = state.selectedChannel == FollowUpContactChannel.WHATSAPP,
+                                onClick = { viewModel.updateFollowUpChannel(FollowUpContactChannel.WHATSAPP) },
+                                label = { Text("WhatsApp") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.AutoMirrored.Filled.Chat,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                            FilterChip(
+                                selected = state.selectedChannel == FollowUpContactChannel.EMAIL,
+                                onClick = { viewModel.updateFollowUpChannel(FollowUpContactChannel.EMAIL) },
+                                label = { Text("Mail") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Email,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                            FilterChip(
+                                selected = state.selectedChannel == FollowUpContactChannel.SMS,
+                                onClick = { viewModel.updateFollowUpChannel(FollowUpContactChannel.SMS) },
+                                label = { Text("SMS") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Sms,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                        }
+                    }
+
+                    FollowUpSectionCard(title = "Reminder Message") {
+                        OutlinedTextField(
+                            value = state.draftMessage,
+                            onValueChange = viewModel::updateDraftMessage,
+                            modifier = Modifier.fillMaxWidth(),
+                            minLines = 5,
+                            placeholder = {
+                                Text("Type follow-up message")
+                            }
                         )
                     }
 
-                    Text(
-                        text = "Next Follow-Up Date: ${state.nextFollowUpDate.toBusinessDateLabel()}",
-                        style = MaterialTheme.typography.bodyLarge
-                    )
+                    FollowUpSectionCard(title = "Schedule Next Follow-Up") {
+                        FlowRow(
+                            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+                        ) {
+                            FilterChip(
+                                selected = state.selectedIntervalDays == 1,
+                                onClick = { viewModel.updateFollowUpInterval(1) },
+                                label = { Text("1 Day") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                            FilterChip(
+                                selected = state.selectedIntervalDays == 3,
+                                onClick = { viewModel.updateFollowUpInterval(3) },
+                                label = { Text("3 Days") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                            FilterChip(
+                                selected = state.selectedIntervalDays == 7,
+                                onClick = { viewModel.updateFollowUpInterval(7) },
+                                label = { Text("1 Week") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                            FilterChip(
+                                selected = state.selectedIntervalDays == null,
+                                onClick = { viewModel.updateFollowUpInterval(null) },
+                                label = { Text("Auto") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.Schedule,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                            FilterChip(
+                                selected = state.isCustomDateSelected,
+                                onClick = {
+                                    showFollowUpDatePicker(
+                                        context = context,
+                                        currentDate = state.nextFollowUpDate,
+                                        onDateSelected = viewModel::updateFollowUpDate
+                                    )
+                                },
+                                label = { Text("Pick Date") },
+                                leadingIcon = {
+                                    Icon(
+                                        imageVector = Icons.Default.CalendarToday,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(MaterialTheme.spacing.medium)
+                                    )
+                                }
+                            )
+                        }
+
+                        Surface(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = MaterialTheme.colorScheme.surfaceContainerHighest,
+                            shape = MaterialTheme.shapes.medium
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(MaterialTheme.spacing.small),
+                                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.CalendarToday,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                                Column {
+                                    Text(
+                                        text = "Next Follow-Up",
+                                        style = MaterialTheme.typography.labelMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                    Text(
+                                        text = state.nextFollowUpDate.toBusinessDateLabel(),
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.SemiBold
+                                    )
+                                }
+                            }
+                        }
+                    }
+
+                    if (state.errorMessage != null) {
+                        Text(
+                            text = state.errorMessage ?: "",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                    }
 
                     PrimaryButton(
                         text = if (state.isSubmitting) "Scheduling..." else "Schedule Follow Up",
@@ -210,6 +326,99 @@ fun InvoiceFollowUpScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+private fun showFollowUpDatePicker(
+    context: Context,
+    currentDate: Date?,
+    onDateSelected: (Date) -> Unit
+) {
+    val calendar = Calendar.getInstance().apply {
+        time = currentDate ?: Date()
+    }
+
+    DatePickerDialog(
+        context,
+        { _, year, month, dayOfMonth ->
+            val selectedCalendar = Calendar.getInstance().apply {
+                set(Calendar.YEAR, year)
+                set(Calendar.MONTH, month)
+                set(Calendar.DAY_OF_MONTH, dayOfMonth)
+                set(Calendar.HOUR_OF_DAY, 9)
+                set(Calendar.MINUTE, 0)
+                set(Calendar.SECOND, 0)
+                set(Calendar.MILLISECOND, 0)
+            }
+            onDateSelected(selectedCalendar.time)
+        },
+        calendar.get(Calendar.YEAR),
+        calendar.get(Calendar.MONTH),
+        calendar.get(Calendar.DAY_OF_MONTH)
+    ).apply {
+        datePicker.minDate = System.currentTimeMillis() - 1_000L
+    }.show()
+}
+
+@Composable
+private fun FollowUpSectionCard(
+    title: String,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(MaterialTheme.spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small),
+            content = {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                content()
+            }
+        )
+    }
+}
+
+@Composable
+private fun FollowUpInfoPill(
+    icon: ImageVector,
+    text: String
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceContainerHighest,
+        shape = MaterialTheme.shapes.large
+    ) {
+        Row(
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.small,
+                vertical = MaterialTheme.spacing.extraSmall
+            ),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.extraSmall),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(MaterialTheme.spacing.medium),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodySmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
