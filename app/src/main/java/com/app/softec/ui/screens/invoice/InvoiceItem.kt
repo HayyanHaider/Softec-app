@@ -29,9 +29,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
+import com.app.softec.core.ui.formatCurrencyWithPrefix
 import com.app.softec.ui.theme.spacing
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -42,6 +42,7 @@ fun InvoiceItem(
     onLongPress: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    currencyPrefix: String,
     selectionMode: Boolean = false,
     selected: Boolean = false,
     onSelectionToggle: () -> Unit = {},
@@ -166,7 +167,10 @@ fun InvoiceItem(
                 ) {
                     InvoiceStatusPill(status = invoice.account.status)
                     Text(
-                        text = invoice.account.amountRemaining.toBusinessCurrency(),
+                        text = formatCurrencyWithPrefix(
+                            amount = invoice.account.amountRemaining,
+                            prefix = currencyPrefix
+                        ),
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary,
                         fontWeight = FontWeight.Bold
@@ -204,10 +208,6 @@ private fun InvoiceStatusPill(status: String) {
             )
         )
     }
-}
-
-private fun Double.toBusinessCurrency(): String {
-    return NumberFormat.getCurrencyInstance().format(this)
 }
 
 private fun java.util.Date.toBusinessDate(): String {

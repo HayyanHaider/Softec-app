@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.app.softec.core.ui.formatCurrencyWithPrefix
 import com.app.softec.core.ui.components.StandardScaffold
 import com.app.softec.ui.theme.spacing
 
@@ -27,6 +28,7 @@ import com.app.softec.ui.theme.spacing
 fun CustomerDetailScreen(
     customerId: String,
     onNavigateBack: () -> Unit,
+    currencyPrefix: String,
     onOpenInvoice: (String) -> Unit,
     viewModel: CustomerDetailViewModel = hiltViewModel()
 ) {
@@ -68,6 +70,7 @@ fun CustomerDetailScreen(
 
             else -> CustomerDetailContent(
                 state = state,
+                currencyPrefix = currencyPrefix,
                 onOpenInvoice = onOpenInvoice,
                 modifier = Modifier
                     .fillMaxSize()
@@ -80,6 +83,7 @@ fun CustomerDetailScreen(
 @Composable
 private fun CustomerDetailContent(
     state: CustomerDetailUiState,
+    currencyPrefix: String,
     onOpenInvoice: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -123,11 +127,21 @@ private fun CustomerDetailContent(
         )
         CustomerInvoiceList(
             invoices = state.invoices,
+            currencyPrefix = currencyPrefix,
             onInvoiceClick = onOpenInvoice
         )
-        DetailMetricCard("Total Amount Due", state.totalAmountDue.toBusinessCurrency())
-        DetailMetricCard("Amount Paid", state.totalAmountPaid.toBusinessCurrency())
-        DetailMetricCard("Amount Remaining", state.totalAmountRemaining.toBusinessCurrency())
+        DetailMetricCard(
+            "Total Amount Due",
+            formatCurrencyWithPrefix(state.totalAmountDue, currencyPrefix)
+        )
+        DetailMetricCard(
+            "Amount Paid",
+            formatCurrencyWithPrefix(state.totalAmountPaid, currencyPrefix)
+        )
+        DetailMetricCard(
+            "Amount Remaining",
+            formatCurrencyWithPrefix(state.totalAmountRemaining, currencyPrefix)
+        )
         DetailMetricCard("Overdue Invoices", state.overdueInvoicesCount.toString())
     }
 }

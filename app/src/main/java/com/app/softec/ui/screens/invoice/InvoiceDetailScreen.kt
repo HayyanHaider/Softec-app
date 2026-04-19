@@ -23,11 +23,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.app.softec.core.ui.formatCurrencyWithPrefix
 import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.core.ui.components.StandardScaffold
 import com.app.softec.domain.model.Account
 import com.app.softec.ui.theme.spacing
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
 
@@ -35,6 +35,7 @@ import java.util.Locale
 fun InvoiceDetailScreen(
     invoiceId: String,
     onNavigateBack: () -> Unit,
+    currencyPrefix: String,
     onFollowUpClick: (String) -> Unit,
     viewModel: InvoiceViewModel = hiltViewModel()
 ) {
@@ -84,6 +85,7 @@ fun InvoiceDetailScreen(
                 InvoiceDetailContent(
                     account = account,
                     customerName = state.customerName,
+                    currencyPrefix = currencyPrefix,
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
@@ -98,6 +100,7 @@ fun InvoiceDetailScreen(
 private fun InvoiceDetailContent(
     account: Account,
     customerName: String,
+    currencyPrefix: String,
     modifier: Modifier = Modifier,
     onFollowUpClick: () -> Unit
 ) {
@@ -135,15 +138,15 @@ private fun InvoiceDetailContent(
 
         InvoiceMetricCard(
             title = "Total Amount Due",
-            value = account.totalAmountDue.toBusinessCurrency()
+            value = formatCurrencyWithPrefix(account.totalAmountDue, currencyPrefix)
         )
         InvoiceMetricCard(
             title = "Amount Paid",
-            value = account.amountPaid.toBusinessCurrency()
+            value = formatCurrencyWithPrefix(account.amountPaid, currencyPrefix)
         )
         InvoiceMetricCard(
             title = "Amount Remaining",
-            value = account.amountRemaining.toBusinessCurrency()
+            value = formatCurrencyWithPrefix(account.amountRemaining, currencyPrefix)
         )
         InvoiceMetricCard(
             title = "Days Overdue",
@@ -215,10 +218,6 @@ private fun InvoiceMetricCard(
             )
         }
     }
-}
-
-private fun Double.toBusinessCurrency(): String {
-    return NumberFormat.getCurrencyInstance().format(this)
 }
 
 private fun java.util.Date.toBusinessDate(): String {

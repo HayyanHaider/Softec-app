@@ -42,6 +42,9 @@ class DataStoreSettingsRepository @Inject constructor(
             aiPromptTemplate = prefs[AI_PROMPT_TEMPLATE] ?: ReminderTemplates.DEFAULT_AI_PROMPT
         )
     }
+    override val currencyPrefix: Flow<String> = context.settingsDataStore.data.map { prefs ->
+        prefs[CURRENCY_PREFIX] ?: DEFAULT_CURRENCY_PREFIX
+    }
 
     override val geminiApiKey: Flow<String?> = context.settingsDataStore.data.map { prefs ->
         prefs[GEMINI_API_KEY]
@@ -75,12 +78,25 @@ class DataStoreSettingsRepository @Inject constructor(
         }
     }
 
+    override suspend fun setCurrencyPrefix(prefix: String) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[CURRENCY_PREFIX] = prefix
+        }
+    }
+
+    override suspend fun clearLocalSettings() {
+        context.settingsDataStore.edit { prefs ->
+            prefs.clear()
+        }
+    }
+
     private fun defaultDarkModeEnabled(): Boolean {
         val nightModeFlags = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         return nightModeFlags == Configuration.UI_MODE_NIGHT_YES
     }
 
     private companion object {
+        const val DEFAULT_CURRENCY_PREFIX = "$"
         val DARK_MODE_ENABLED = booleanPreferencesKey("dark_mode_enabled")
         val CLOUD_SYNC_ENABLED = booleanPreferencesKey("cloud_sync_enabled")
         val FRIENDLY_TEMPLATE = stringPreferencesKey("friendly_reminder_template")
@@ -89,5 +105,6 @@ class DataStoreSettingsRepository @Inject constructor(
         val USE_AI_GENERATION = booleanPreferencesKey("use_ai_generation")
         val AI_PROMPT_TEMPLATE = stringPreferencesKey("ai_prompt_template")
         val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
+        val CURRENCY_PREFIX = stringPreferencesKey("currency_prefix")
     }
 }

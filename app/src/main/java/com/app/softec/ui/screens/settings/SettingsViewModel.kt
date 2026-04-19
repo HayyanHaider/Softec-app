@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 data class SettingsUiState(
     val isDarkModeEnabled: Boolean = false,
     val isCloudSyncEnabled: Boolean = true,
-    val reminderTemplates: ReminderTemplates = ReminderTemplates()
+    val reminderTemplates: ReminderTemplates = ReminderTemplates(),
+    val currencyPrefix: String = ""
 )
 
 @HiltViewModel
@@ -30,12 +31,14 @@ class SettingsViewModel @Inject constructor(
     val uiState: StateFlow<SettingsUiState> = combine(
         settingsRepository.isDarkModeEnabled,
         settingsRepository.isCloudSyncEnabled,
-        settingsRepository.reminderTemplates
-    ) { isDarkModeEnabled, isCloudSyncEnabled, reminderTemplates ->
+        settingsRepository.reminderTemplates,
+        settingsRepository.currencyPrefix
+    ) { isDarkModeEnabled, isCloudSyncEnabled, reminderTemplates, currencyPrefix ->
         SettingsUiState(
             isDarkModeEnabled = isDarkModeEnabled,
             isCloudSyncEnabled = isCloudSyncEnabled,
-            reminderTemplates = reminderTemplates
+            reminderTemplates = reminderTemplates,
+            currencyPrefix = currencyPrefix
         )
     }.stateIn(
         scope = viewModelScope,
@@ -76,6 +79,9 @@ class SettingsViewModel @Inject constructor(
     fun setGeminiApiKey(apiKey: String) {
         viewModelScope.launch {
             settingsRepository.setGeminiApiKey(apiKey)
+    fun setCurrencyPrefix(prefix: String) {
+        viewModelScope.launch {
+            settingsRepository.setCurrencyPrefix(prefix.take(3))
         }
     }
 }

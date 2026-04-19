@@ -8,9 +8,12 @@ interface SettingsRepository {
     val isCloudSyncEnabled: Flow<Boolean>
     val reminderTemplates: Flow<ReminderTemplates>
     val geminiApiKey: Flow<String?>
+    val currencyPrefix: Flow<String>
 
     suspend fun setDarkModeEnabled(isEnabled: Boolean)
     suspend fun setCloudSyncEnabled(isEnabled: Boolean)
     suspend fun setReminderTemplates(templates: ReminderTemplates)
     suspend fun setGeminiApiKey(apiKey: String)
+    suspend fun setCurrencyPrefix(prefix: String)
+    suspend fun clearLocalSettings()
 }

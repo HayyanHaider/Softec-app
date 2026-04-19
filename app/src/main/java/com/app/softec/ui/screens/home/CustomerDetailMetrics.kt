@@ -12,7 +12,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import com.app.softec.ui.theme.spacing
-import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -44,8 +43,6 @@ fun DetailMetricCard(title: String, value: String) {
         }
     }
 }
-
-fun Double.toBusinessCurrency(): String = NumberFormat.getCurrencyInstance().format(this)
 
 fun Date.toBusinessDate(): String {
     return SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(this)

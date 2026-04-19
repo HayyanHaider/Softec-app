@@ -2,6 +2,7 @@ package com.app.softec.navigation
 
 import androidx.compose.animation.EnterTransition
 import androidx.compose.animation.ExitTransition
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.RowScope
@@ -28,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.navigation.NavDestination
 import androidx.navigation.NavDestination.Companion.hierarchy
@@ -215,6 +217,7 @@ fun AppNavHost(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
+                    currencyPrefix = settingsState.currencyPrefix,
                     onAddInvoice = { customerId ->
                         navActions.navigateTo(Screen.AddInvoice(customerId))
                     },
@@ -241,6 +244,7 @@ fun AppNavHost(
                     state = settingsState,
                     onToggleDarkMode = resolvedSettingsViewModel::setDarkModeEnabled,
                     onToggleCloudSync = resolvedSettingsViewModel::setCloudSyncEnabled,
+                    onCurrencyPrefixChange = resolvedSettingsViewModel::setCurrencyPrefix,
                     onOpenReminderTemplates = {
                         navActions.navigateTo(Screen.ReminderTemplates)
                     },
@@ -283,6 +287,7 @@ fun AppNavHost(
             CustomerDetailScreen(
                 customerId = details.id,
                 onNavigateBack = navActions::navigateBack,
+                currencyPrefix = settingsState.currencyPrefix,
                 onOpenInvoice = { invoiceId ->
                     navActions.navigateTo(Screen.InvoiceDetail(invoiceId))
                 }
@@ -293,6 +298,7 @@ fun AppNavHost(
             InvoiceDetailScreen(
                 invoiceId = route.id,
                 onNavigateBack = navActions::navigateBack,
+                currencyPrefix = settingsState.currencyPrefix,
                 onFollowUpClick = { accountId ->
                     navActions.navigateTo(Screen.InvoiceFollowUp(accountId))
                 }
@@ -333,6 +339,7 @@ private fun TopLevelScreen(
     topBarActions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
+    val currentTabIndex = currentDestination.topLevelTabIndex()
     StandardScaffold(
         title = title,
         topBarActions = topBarActions,
@@ -354,7 +361,33 @@ private fun TopLevelScreen(
             }
         }
     ) { innerPadding ->
-        content(innerPadding)
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .pointerInput(currentTabIndex) {
+                    var totalHorizontalDrag = 0f
+                    detectHorizontalDragGestures(
+                        onHorizontalDrag = { _, dragAmount ->
+                            totalHorizontalDrag += dragAmount
+                        },
+                        onDragEnd = {
+                            when {
+                                totalHorizontalDrag <= -80f -> {
+                                    val nextIndex = currentTabIndex + 1
+                                    topLevelDestinations.getOrNull(nextIndex)?.screen?.let(onSelectTab)
+                                }
+                                totalHorizontalDrag >= 80f -> {
+                                    val previousIndex = currentTabIndex - 1
+                                    topLevelDestinations.getOrNull(previousIndex)?.screen?.let(onSelectTab)
+                                }
+                            }
+                            totalHorizontalDrag = 0f
+                        }
+                    )
+                }
+        ) {
+            content(innerPadding)
+        }
     }
 }
 
@@ -375,6 +408,15 @@ private fun NavDestination?.isTopLevelDestinationSelected(screen: Screen): Boole
         Screen.Settings -> this?.hierarchy?.any { it.hasRoute<Screen.Settings>() } == true
         Screen.Profile -> this?.hierarchy?.any { it.hasRoute<Screen.Profile>() } == true
         else -> false
+    }
+}
+
+private fun NavDestination?.topLevelTabIndex(): Int {
+    return when {
+        this?.hierarchy?.any { it.hasRoute<Screen.Customers>() } == true -> 0
+        this?.hierarchy?.any { it.hasRoute<Screen.Invoices>() } == true -> 1
+        this?.hierarchy?.any { it.hasRoute<Screen.Settings>() } == true -> 2
+        else -> -1
     }
 }
 

@@ -25,12 +25,14 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
+import com.app.softec.core.ui.formatCurrencyWithPrefix
 import com.app.softec.domain.model.Account
 import com.app.softec.ui.theme.spacing
 
 @Composable
 fun CustomerInvoiceList(
     invoices: List<Account>,
+    currencyPrefix: String,
     onInvoiceClick: (String) -> Unit
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(false) }
@@ -71,6 +73,7 @@ fun CustomerInvoiceList(
                         invoices.forEachIndexed { index, invoice ->
                             InvoiceRow(
                                 invoice = invoice,
+                                currencyPrefix = currencyPrefix,
                                 onInvoiceClick = onInvoiceClick
                             )
                             if (index < invoices.lastIndex) {
@@ -91,6 +94,7 @@ fun CustomerInvoiceList(
 @Composable
 private fun InvoiceRow(
     invoice: Account,
+    currencyPrefix: String,
     onInvoiceClick: (String) -> Unit
 ) {
     Row(
@@ -117,7 +121,7 @@ private fun InvoiceRow(
             )
         }
         Text(
-            text = invoice.amountRemaining.toBusinessCurrency(),
+            text = formatCurrencyWithPrefix(invoice.amountRemaining, currencyPrefix),
             style = MaterialTheme.typography.bodyMedium,
             fontWeight = FontWeight.SemiBold
         )
