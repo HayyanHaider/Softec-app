@@ -43,6 +43,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.core.ui.components.StandardScaffold
@@ -199,12 +200,24 @@ fun InvoiceFollowUpScreen(
                                 }
                             )
 
-                            PrimaryButton(
-                                text = if (state.isGeneratingAI) "Generating..." else "Generate with AI",
-                                onClick = { viewModel.generateAIMessage() },
-                                enabled = !state.isGeneratingAI,
-                                modifier = Modifier.fillMaxWidth()
-                            )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+                            ) {
+                                PrimaryButton(
+                                    text = "System Prompt",
+                                    onClick = { viewModel.useSystemPrompt() },
+                                    modifier = Modifier.weight(1f),
+                                    horizontalPadding = 0.dp
+                                )
+                                PrimaryButton(
+                                    text = if (state.isGeneratingAI) "Generating..." else "Generate with AI",
+                                    onClick = { viewModel.generateAIMessage() },
+                                    enabled = !state.isGeneratingAI,
+                                    modifier = Modifier.weight(1f),
+                                    horizontalPadding = 0.dp
+                                )
+                            }
 
                             if (state.aiGeneratedMessage != null && state.aiGeneratedMessage != state.suggestedMessage) {
                                 Text(

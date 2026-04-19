@@ -61,16 +61,6 @@ class AuthViewModel @Inject constructor(
         }
     }
 
-    fun signInWithGoogleIdToken(idToken: String) {
-        launchAuthAction {
-            authRepository.signInWithGoogleIdToken(idToken)
-        }
-    }
-
-    fun reportExternalError(message: String) {
-        setError(message)
-    }
-
     fun clearError() {
         _uiState.update { it.copy(errorMessage = null) }
     }

@@ -8,6 +8,5 @@ interface AuthRepository {
     fun authState(): Flow<FirebaseUser?>
     suspend fun signInWithEmail(email: String, password: String): Resource<FirebaseUser>
     suspend fun signUpWithEmail(email: String, password: String): Resource<FirebaseUser>
-    suspend fun signInWithGoogleIdToken(idToken: String): Resource<FirebaseUser>
     suspend fun signOut(): Resource<Unit>
 }

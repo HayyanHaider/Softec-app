@@ -7,36 +7,24 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.credentials.CredentialManager
-import androidx.credentials.CustomCredential
-import androidx.credentials.GetCredentialRequest
 import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.core.ui.components.StyledTextField
 import com.app.softec.ui.theme.spacing
-import com.google.android.libraries.identity.googleid.GetGoogleIdOption
-import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
-import com.google.android.libraries.identity.googleid.GoogleIdTokenParsingException
-import kotlinx.coroutines.launch
 
 private enum class AuthMode {
     SignIn,
@@ -48,9 +36,6 @@ fun AuthScreen(
     modifier: Modifier = Modifier,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-    val scope = rememberCoroutineScope()
-    val credentialManager = remember(context) { CredentialManager.create(context) }
     val uiState by viewModel.uiState.collectAsState()
 
     var mode by rememberSaveable { mutableStateOf(AuthMode.SignIn) }
@@ -78,7 +63,7 @@ fun AuthScreen(
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
         )
         Text(
-            text = "Sign in with email/password or continue with Google.",
+            text = "Sign in with your email and password.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium)
@@ -174,83 +159,5 @@ fun AuthScreen(
                 }
             )
         }
-
-        HorizontalDivider(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.medium))
-
-        OutlinedButton(
-            onClick = {
-                scope.launch {
-                    val idToken = runCatching {
-                        val webClientId = resolveGoogleWebClientId(context)
-                            ?: throw IllegalStateException(
-                                "Google sign-in is not configured. Add a valid Web client ID in Firebase."
-                            )
-                        requestGoogleIdToken(
-                            credentialManager = credentialManager,
-                            serverClientId = webClientId,
-                            context = context
-                        )
-                    }.getOrElse { throwable ->
-                        viewModel.reportExternalError(
-                            throwable.message ?: "Google sign-in was cancelled"
-                        )
-                        return@launch
-                    }
-                    viewModel.signInWithGoogleIdToken(idToken)
-                }
-            },
-            enabled = !uiState.isLoading,
-            modifier = Modifier
-                .padding(horizontal = MaterialTheme.spacing.medium)
-        ) {
-            Text("Continue with Google")
-        }
     }
-}
-
-private suspend fun requestGoogleIdToken(
-    credentialManager: CredentialManager,
-    serverClientId: String,
-    context: android.content.Context
-): String {
-    val googleIdOption = GetGoogleIdOption.Builder()
-        .setServerClientId(serverClientId)
-        .setFilterByAuthorizedAccounts(false)
-        .setAutoSelectEnabled(false)
-        .build()
-
-    val request = GetCredentialRequest.Builder()
-        .addCredentialOption(googleIdOption)
-        .build()
-
-    val credentialResponse = credentialManager.getCredential(
-        context = context,
-        request = request
-    )
-    val credential = credentialResponse.credential
-
-    if (credential is CustomCredential &&
-        credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL
-    ) {
-        try {
-            return GoogleIdTokenCredential.createFrom(credential.data).idToken
-        } catch (e: GoogleIdTokenParsingException) {
-            throw IllegalStateException("Failed to parse Google ID token", e)
-        }
-    }
-
-    throw IllegalStateException("Google account credential was not returned")
-}
-
-private fun resolveGoogleWebClientId(context: android.content.Context): String? {
-    val resourceId = context.resources.getIdentifier(
-        "default_web_client_id",
-        "string",
-        context.packageName
-    )
-    if (resourceId == 0) {
-        return null
-    }
-    val value = context.getString(resourceId).trim()
-    return value.takeIf { it.endsWith(".apps.googleusercontent.com") }
 }

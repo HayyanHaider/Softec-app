@@ -71,9 +71,6 @@ dependencies {
     implementation(libs.firebase.firestore)
     implementation(libs.firebase.database)
     implementation("com.google.firebase:firebase-storage")
-    implementation(libs.androidx.credentials)
-    implementation(libs.androidx.credentials.play.services.auth)
-    implementation(libs.googleid)
 
     // Room Database
     implementation("androidx.room:room-ktx:$room_version")

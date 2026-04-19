@@ -449,6 +449,36 @@ class InvoiceViewModel @Inject constructor(
         }
     }
 
+    fun useSystemPrompt() {
+        viewModelScope.launch {
+            val account = followUpAccount
+            if (account == null) {
+                _followUpState.update {
+                    it.copy(errorMessage = "Account data not loaded. Please try again.")
+                }
+                return@launch
+            }
+            runCatching {
+                val customer = customerRepository.getCustomerFlow(account.customerId).first()
+                    ?: throw IllegalStateException("Customer information not found.")
+                generateReminderMessageUseCase(account, customer)
+            }.onSuccess { urgencyBasedPrompt ->
+                _followUpState.update {
+                    it.copy(
+                        draftMessage = urgencyBasedPrompt,
+                        errorMessage = null
+                    )
+                }
+            }.onFailure { throwable ->
+                _followUpState.update {
+                    it.copy(
+                        errorMessage = throwable.message ?: "Unable to load system prompt."
+                    )
+                }
+            }
+        }
+    }
+
     fun prepareEditor(invoiceId: String?, selectedCustomerId: String?) {
         viewModelScope.launch {
             if (invoiceId.isNullOrBlank()) {

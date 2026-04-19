@@ -3,7 +3,6 @@ package com.app.softec.data.auth
 import com.app.softec.core.result.Resource
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
-import com.google.firebase.auth.GoogleAuthProvider
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -47,20 +46,6 @@ class FirebaseAuthRepository @Inject constructor(
             }
         } catch (e: Exception) {
             Resource.Error(message = e.message ?: "Sign-up failed", throwable = e)
-        }
-    }
-
-    override suspend fun signInWithGoogleIdToken(idToken: String): Resource<FirebaseUser> {
-        return try {
-            val credential = GoogleAuthProvider.getCredential(idToken, null)
-            val user = firebaseAuth.signInWithCredential(credential).await().user
-            if (user == null) {
-                Resource.Error("Google sign-in failed: no user returned")
-            } else {
-                Resource.Success(user)
-            }
-        } catch (e: Exception) {
-            Resource.Error(message = e.message ?: "Google sign-in failed", throwable = e)
         }
     }
 
