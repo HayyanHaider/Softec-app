@@ -259,7 +259,8 @@ fun AppNavHost(
                         .fillMaxSize()
                         .padding(innerPadding),
                     templates = settingsState.reminderTemplates,
-                    onSaveTemplates = resolvedSettingsViewModel::updateReminderTemplates
+                    onSaveTemplates = resolvedSettingsViewModel::updateReminderTemplates,
+                    onSaveApiKey = resolvedSettingsViewModel::setGeminiApiKey
                 )
             }
         }

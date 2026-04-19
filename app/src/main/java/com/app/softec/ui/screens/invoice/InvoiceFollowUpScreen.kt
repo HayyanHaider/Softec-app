@@ -185,15 +185,43 @@ fun InvoiceFollowUpScreen(
                     }
 
                     FollowUpSectionCard(title = "Reminder Message") {
-                        OutlinedTextField(
-                            value = state.draftMessage,
-                            onValueChange = viewModel::updateDraftMessage,
+                        Column(
                             modifier = Modifier.fillMaxWidth(),
-                            minLines = 5,
-                            placeholder = {
-                                Text("Type follow-up message")
+                            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+                        ) {
+                            OutlinedTextField(
+                                value = state.draftMessage,
+                                onValueChange = viewModel::updateDraftMessage,
+                                modifier = Modifier.fillMaxWidth(),
+                                minLines = 5,
+                                placeholder = {
+                                    Text("Type follow-up message")
+                                }
+                            )
+
+                            PrimaryButton(
+                                text = if (state.isGeneratingAI) "Generating..." else "Generate with AI",
+                                onClick = { viewModel.generateAIMessage() },
+                                enabled = !state.isGeneratingAI,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+
+                            if (state.aiGeneratedMessage != null && state.aiGeneratedMessage != state.suggestedMessage) {
+                                Text(
+                                    text = "✓ AI message generated",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
                             }
-                        )
+
+                            if (state.errorMessage?.contains("AI", ignoreCase = true) == true) {
+                                Text(
+                                    text = state.errorMessage ?: "",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
                     }
 
                     FollowUpSectionCard(title = "Schedule Next Follow-Up") {
