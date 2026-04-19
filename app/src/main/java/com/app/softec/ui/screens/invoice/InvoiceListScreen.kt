@@ -258,7 +258,8 @@ fun InvoiceListScreen(
                     PrimaryButton(
                         text = "Add Invoice",
                         onClick = openAddInvoiceSelector,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
+                        horizontalPadding = 0.dp
                     )
                 }
 

@@ -75,9 +75,8 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun setCurrencyPrefix(prefix: String) {
-        val cleanedPrefix = prefix.trim().take(3)
         viewModelScope.launch {
-            settingsRepository.setCurrencyPrefix(cleanedPrefix)
+            settingsRepository.setCurrencyPrefix(prefix.take(3))
         }
     }
 }

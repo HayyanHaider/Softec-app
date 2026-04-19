@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.app.softec.ui.theme.spacing
 
@@ -20,6 +21,7 @@ fun PrimaryButton(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
+    horizontalPadding: Dp = MaterialTheme.spacing.medium,
     containerColor: Color = MaterialTheme.colorScheme.primary,
     contentColor: Color = MaterialTheme.colorScheme.onPrimary
 ) {
@@ -28,7 +30,7 @@ fun PrimaryButton(
         modifier = modifier
             .fillMaxWidth()
             .height(56.dp)
-            .padding(horizontal = MaterialTheme.spacing.medium),
+            .padding(horizontal = horizontalPadding),
         enabled = enabled,
         shape = RoundedCornerShape(12.dp),
         colors = ButtonDefaults.buttonColors(
