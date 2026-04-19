@@ -83,7 +83,7 @@ fun HomeDataScreen(
         state = state,
         modifier = modifier.fillMaxSize(),
         onRetry = viewModel::syncNow
-    ) {
+    ) { items ->
         if (items.isEmpty()) {
             EmptyState(
                 title = "No Data Found",

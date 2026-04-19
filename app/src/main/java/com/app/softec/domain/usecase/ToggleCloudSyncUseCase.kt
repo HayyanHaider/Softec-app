@@ -1,11 +1,12 @@
-package com.app.softec.domain.repository
+package com.app.softec.domain.usecase
 
-import kotlinx.coroutines.flow.Flow
+import com.app.softec.domain.repository.SettingsRepository
+import javax.inject.Inject
 
-interface SettingsRepository {
-    val isCloudSyncEnabled: Flow<Boolean>
-    suspend fun setCloudSyncEnabled(isEnabled: Boolean)
-    
-    // Add other settings here later, like:
-    // val defaultReminderTemplate: Flow<String>
+class ToggleCloudSyncUseCase @Inject constructor(
+    private val settingsRepository: SettingsRepository
+) {
+    suspend operator fun invoke(isEnabled: Boolean) {
+        settingsRepository.setCloudSyncEnabled(isEnabled)
+    }
 }

@@ -16,7 +16,22 @@ sealed interface Screen {
     data object Invoices : Screen
 
     @Serializable
+    data class InvoiceDetail(val id: String) : Screen
+
+    @Serializable
+    data class InvoiceFollowUp(val id: String) : Screen
+
+    @Serializable
+    data class AddInvoice(val customerId: String) : Screen
+
+    @Serializable
+    data class EditInvoice(val id: String) : Screen
+
+    @Serializable
     data object Settings : Screen
+
+    @Serializable
+    data object ReminderTemplates : Screen
 
     @Serializable
     data class Details(val id: String) : Screen

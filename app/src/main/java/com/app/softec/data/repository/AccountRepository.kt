@@ -5,10 +5,19 @@ import com.app.softec.data.local.entity.AccountEntity
 import com.app.softec.data.mapper.AccountMappers.toEntity
 import com.app.softec.data.mapper.AccountMappers.toDomain
 import com.app.softec.data.mapper.AccountMappers.toFirestore
+import com.app.softec.data.remote.firestore.AccountFirestore
+import com.app.softec.data.remote.firestore.snapshotAsFlow
 import com.app.softec.domain.model.Account
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -18,6 +27,9 @@ class AccountRepository @Inject constructor(
     private val accountDao: AccountDao,
     private val firestore: FirebaseFirestore
 ) {
+
+    private var realtimeSyncJob: Job? = null
+    private var realtimeSyncUserId: String? = null
     
     // Get all accounts for user
     fun getAllAccounts(userId: String): Flow<List<Account>> =
@@ -58,17 +70,47 @@ class AccountRepository @Inject constructor(
     suspend fun insertAccount(account: Account, userId: String) {
         val entity = account.toEntity(userId)
         accountDao.insertAccount(entity)
+        syncUnsynced(userId)
+    }
+
+    fun bindRealtimeSync(userId: String, scope: CoroutineScope) {
+        if (realtimeSyncJob?.isActive == true && realtimeSyncUserId == userId) return
+
+        realtimeSyncJob?.cancel()
+        realtimeSyncUserId = userId
+
+        realtimeSyncJob = scope.launch(Dispatchers.IO) {
+            firestore.collection("users").document(userId)
+                .collection("accounts")
+                .snapshotAsFlow<AccountFirestore>()
+                .catch { throwable ->
+                    if (throwable is FirebaseFirestoreException && throwable.code == FirebaseFirestoreException.Code.PERMISSION_DENIED) {
+                        return@catch
+                    }
+                    throw throwable
+                }
+                .collectLatest { remoteAccounts ->
+                    remoteAccounts.forEach { remote ->
+                        mergeRemoteAccount(remote.toEntity(userId))
+                    }
+                }
+        }
     }
     
     // Update account
     suspend fun updateAccount(account: Account, userId: String) {
         val entity = account.toEntity(userId)
         accountDao.updateAccount(entity)
+        syncUnsynced(userId)
     }
     
     // Delete account
-    suspend fun deleteAccount(account: Account) {
-        accountDao.deleteAccount(account.toEntity(""))
+    suspend fun deleteAccount(account: Account, userId: String) {
+        accountDao.deleteAccount(account.toEntity(userId))
+        firestore.collection("users").document(userId)
+            .collection("accounts").document(account.id)
+            .delete()
+            .await()
     }
     
     // Sync unsynced accounts to Firestore
@@ -76,38 +118,41 @@ class AccountRepository @Inject constructor(
         val unsyncedAccounts = accountDao.getUnsyncedAccounts(userId)
         
         unsyncedAccounts.forEach { entity ->
-            try {
-                firestore.collection("users").document(userId)
-                    .collection("accounts").document(entity.id)
-                    .set(entity.toFirestore())
-                    .await()
-                
-                // Mark as synced
-                accountDao.updateAccount(entity.copy(isSynced = true))
-            } catch (e: Exception) {
-                // Log error, retry later
-                e.printStackTrace()
-            }
+            firestore.collection("users").document(userId)
+                .collection("accounts").document(entity.id)
+                .set(entity.toFirestore())
+                .await()
+
+            // Mark as synced
+            accountDao.updateAccount(entity.copy(isSynced = true))
         }
     }
     
     // Pull accounts from Firestore
     suspend fun pullFromFirestore(userId: String) {
-        try {
-            val documents = firestore.collection("users").document(userId)
-                .collection("accounts").get().await()
-            
-            documents.documents.forEach { doc ->
-                val entity = doc.toObject(AccountEntity::class.java)?.copy(
-                    isSynced = true,
-                    userId = userId
-                )
-                if (entity != null) {
-                    accountDao.insertAccount(entity)
-                }
+        val documents = firestore.collection("users").document(userId)
+            .collection("accounts").get().await()
+
+        documents.documents.forEach { doc ->
+            val remote = doc.toObject(AccountFirestore::class.java)
+            if (remote != null) {
+                mergeRemoteAccount(remote.toEntity(userId))
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }
+    }
+
+    private suspend fun mergeRemoteAccount(remoteEntity: AccountEntity) {
+        val localEntity = accountDao.getAccountById(remoteEntity.id)
+
+        val shouldApplyRemote = when {
+            localEntity == null -> true
+            localEntity.isSynced -> true
+            localEntity.updatedAt.before(remoteEntity.updatedAt) -> true
+            else -> false
+        }
+
+        if (shouldApplyRemote) {
+            accountDao.insertAccount(remoteEntity.copy(isSynced = true))
         }
     }
 }

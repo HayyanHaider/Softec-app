@@ -2,13 +2,18 @@ package com.app.softec.domain.usecase
 
 import com.app.softec.domain.model.Account
 import com.app.softec.domain.model.Customer
+import com.app.softec.domain.model.ReminderTemplates
+import com.app.softec.domain.repository.SettingsRepository
 import javax.inject.Inject
+import kotlinx.coroutines.flow.first
 
 /**
  * Use case for automatically generating professional reminder messages for overdue accounts.
  * Leverages the separated Customer and Account models.
  */
-class GenerateReminderMessageUseCase @Inject constructor() {
+class GenerateReminderMessageUseCase @Inject constructor(
+    private val settingsRepository: SettingsRepository
+) {
 
     /**
      * Automatically generates a message based on account overdue severity. [cite: 6]
@@ -17,8 +22,9 @@ class GenerateReminderMessageUseCase @Inject constructor() {
      * @param customer The customer associated with the account.
      * @return A formatted message string.
      */
-    operator fun invoke(account: Account, customer: Customer): String {
-        return generateMessageBySeverity(account, customer)
+    suspend operator fun invoke(account: Account, customer: Customer): String {
+        val templates = settingsRepository.reminderTemplates.first()
+        return generateMessageBySeverity(account, customer, templates)
     }
 
     /**
@@ -29,32 +35,43 @@ class GenerateReminderMessageUseCase @Inject constructor() {
      * @param templateType The specific tone to use.
      * @return A formatted message string.
      */
-    fun generateWithTemplate(
+    suspend fun generateWithTemplate(
         account: Account,
         customer: Customer,
         templateType: TemplateType
     ): String {
-        val amountStr = formatAmount(account.amountRemaining) // Uses amountRemaining from Account model
-
-        return when (templateType) {
-            TemplateType.FRIENDLY -> {
-                "Hi ${customer.customerName}, this is a friendly reminder that your account has an outstanding balance of $amountStr. Please let us know if you have any questions. Thank you!"
-            }
-            TemplateType.STANDARD -> {
-                "Dear ${customer.customerName}, our records indicate an overdue balance of $amountStr on your account. Please process this payment at your earliest convenience or contact our billing department."
-            }
-            TemplateType.URGENT -> {
-                "URGENT NOTICE: Dear ${customer.customerName}, your account is significantly past due with a balance of $amountStr. Immediate payment is required to avoid further action."
-            }
-        }
+        val templates = settingsRepository.reminderTemplates.first()
+        return generateWithTemplate(account, customer, templateType, templates)
     }
 
-    private fun generateMessageBySeverity(account: Account, customer: Customer): String {
+    private fun generateWithTemplate(
+        account: Account,
+        customer: Customer,
+        templateType: TemplateType,
+        templates: ReminderTemplates
+    ): String {
+        val amountStr = formatAmount(account.amountRemaining) // Uses amountRemaining from Account model
+        val rawTemplate = when (templateType) {
+            TemplateType.FRIENDLY -> templates.friendly
+            TemplateType.STANDARD -> templates.standard
+            TemplateType.URGENT -> templates.urgent
+        }
+
+        return rawTemplate
+            .replace("{name}", customer.customerName)
+            .replace("{amount}", amountStr)
+    }
+
+    private fun generateMessageBySeverity(
+        account: Account,
+        customer: Customer,
+        templates: ReminderTemplates
+    ): String {
         // Uses daysOverdue logic from the Account model
         return when {
-            account.daysOverdue <= 7 -> generateWithTemplate(account, customer, TemplateType.FRIENDLY)
-            account.daysOverdue in 8..30 -> generateWithTemplate(account, customer, TemplateType.STANDARD)
-            else -> generateWithTemplate(account, customer, TemplateType.URGENT)
+            account.daysOverdue <= 7 -> generateWithTemplate(account, customer, TemplateType.FRIENDLY, templates)
+            account.daysOverdue in 8..30 -> generateWithTemplate(account, customer, TemplateType.STANDARD, templates)
+            else -> generateWithTemplate(account, customer, TemplateType.URGENT, templates)
         }
     }
 
