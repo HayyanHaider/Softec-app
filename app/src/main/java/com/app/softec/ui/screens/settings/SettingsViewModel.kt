@@ -62,7 +62,9 @@ class SettingsViewModel @Inject constructor(
         val cleaned = ReminderTemplates(
             friendly = templates.friendly.trim(),
             standard = templates.standard.trim(),
-            urgent = templates.urgent.trim()
+            urgent = templates.urgent.trim(),
+            useAIGeneration = templates.useAIGeneration,
+            aiPromptTemplate = templates.aiPromptTemplate.trim()
         )
 
         if (cleaned.friendly.isBlank() || cleaned.standard.isBlank() || cleaned.urgent.isBlank()) {
@@ -74,6 +76,9 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun setGeminiApiKey(apiKey: String) {
+        viewModelScope.launch {
+            settingsRepository.setGeminiApiKey(apiKey)
     fun setCurrencyPrefix(prefix: String) {
         viewModelScope.launch {
             settingsRepository.setCurrencyPrefix(prefix.take(3))

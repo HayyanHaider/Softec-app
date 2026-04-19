@@ -17,6 +17,7 @@ import com.app.softec.domain.usecase.CreateInvoiceUseCase
 import com.app.softec.domain.usecase.FilterInvoicesUseCase
 import com.app.softec.domain.usecase.InvoiceFilterType
 import com.app.softec.domain.usecase.GenerateReminderMessageUseCase
+import com.app.softec.domain.usecase.GenerateAIReminderMessageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.util.Calendar
 import java.util.Date
@@ -78,6 +79,8 @@ data class FollowUpUiState(
     val nextFollowUpDate: Date? = null,
     val isSubmitting: Boolean = false,
     val submissionCompleted: Boolean = false,
+    val isGeneratingAI: Boolean = false,
+    val aiGeneratedMessage: String? = null,
     val errorMessage: String? = null
 )
 
@@ -108,6 +111,7 @@ class InvoiceViewModel @Inject constructor(
     private val createInvoiceUseCase: CreateInvoiceUseCase,
     private val filterInvoicesUseCase: FilterInvoicesUseCase,
     private val generateReminderMessageUseCase: GenerateReminderMessageUseCase,
+    private val generateAIReminderMessageUseCase: GenerateAIReminderMessageUseCase,
     private val calculateNextFollowUpUseCase: CalculateNextFollowUpUseCase
 ) : ViewModel() {
 
@@ -405,6 +409,44 @@ class InvoiceViewModel @Inject constructor(
 
     fun clearFollowUpCompletion() {
         _followUpState.update { it.copy(submissionCompleted = false) }
+    }
+
+    fun generateAIMessage() {
+        viewModelScope.launch {
+            val account = followUpAccount
+            val state = _followUpState.value
+
+            if (account == null) {
+                _followUpState.update {
+                    it.copy(errorMessage = "Account data not loaded. Please try again.")
+                }
+                return@launch
+            }
+
+            _followUpState.update { it.copy(isGeneratingAI = true, errorMessage = null) }
+
+            runCatching {
+                val customer = customerRepository.getCustomerFlow(account.customerId).first()
+                    ?: throw Exception("Customer information not found.")
+                generateAIReminderMessageUseCase(account, customer)
+            }.onSuccess { aiMessage ->
+                _followUpState.update {
+                    it.copy(
+                        isGeneratingAI = false,
+                        aiGeneratedMessage = aiMessage,
+                        draftMessage = aiMessage,
+                        errorMessage = null
+                    )
+                }
+            }.onFailure { throwable ->
+                _followUpState.update {
+                    it.copy(
+                        isGeneratingAI = false,
+                        errorMessage = throwable.message ?: "Failed to generate AI message."
+                    )
+                }
+            }
+        }
     }
 
     fun prepareEditor(invoiceId: String?, selectedCustomerId: String?) {
