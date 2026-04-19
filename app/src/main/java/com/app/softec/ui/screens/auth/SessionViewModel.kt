@@ -24,6 +24,9 @@ class SessionViewModel @Inject constructor(
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.Checking)
     val sessionState: StateFlow<SessionState> = _sessionState.asStateFlow()
 
+    private val _currentUserProfile = MutableStateFlow<SessionUserProfile?>(null)
+    val currentUserProfile: StateFlow<SessionUserProfile?> = _currentUserProfile.asStateFlow()
+
     init {
         observeAuthState()
     }
@@ -35,6 +38,19 @@ class SessionViewModel @Inject constructor(
                     SessionState.Authenticated
                 } else {
                     SessionState.Unauthenticated
+                }
+
+                _currentUserProfile.value = if (user == null) {
+                    null
+                } else {
+                    SessionUserProfile(
+                        username = user.displayName
+                            ?.takeIf { it.isNotBlank() }
+                            ?: user.email?.substringBefore("@")
+                            ?: "User",
+                        email = user.email,
+                        photoUrl = user.photoUrl?.toString()
+                    )
                 }
             }
         }

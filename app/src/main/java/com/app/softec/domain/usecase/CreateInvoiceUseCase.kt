@@ -20,6 +20,7 @@ class CreateInvoiceUseCase @Inject constructor(
      * @param userId The ID of the currently logged-in user.
      * @param customerId The ID of the customer this invoice belongs to.
      * @param totalAmountDue The total debt amount.
+     * @param amountPaid The initial amount already paid toward this invoice.
      * @param dueDate The date by which the amount should be paid.
      * @param notes Optional notes regarding this invoice.
      * @return A Result indicating success or failure.
@@ -28,24 +29,25 @@ class CreateInvoiceUseCase @Inject constructor(
         userId: String,
         customerId: String,
         totalAmountDue: Double,
+        amountPaid: Double = 0.0,
         dueDate: Date,
         notes: String? = null
     ): Result<Unit> {
         return try {
             val today = Date()
+            val amountRemaining = (totalAmountDue - amountPaid).coerceAtLeast(0.0)
             
             // Determine initial status
-            val isOverdue = dueDate.before(today)
-            val status = if (isOverdue) "overdue" else "active"
-            val daysOverdue = if (isOverdue) calculateDaysBetween(dueDate, today) else 0
+            val status = determineStatus(amountRemaining, amountPaid, dueDate, today)
+            val daysOverdue = if (status == "overdue") calculateDaysBetween(dueDate, today) else 0
 
             // Construct the updated Account/Invoice model
             val newInvoice = Account(
                 id = UUID.randomUUID().toString(),
                 customerId = customerId,
                 totalAmountDue = totalAmountDue,
-                amountPaid = 0.0,
-                amountRemaining = totalAmountDue,
+                amountPaid = amountPaid,
+                amountRemaining = amountRemaining,
                 dueDate = dueDate,
                 createdAt = today,
                 updatedAt = today,
@@ -71,5 +73,17 @@ class CreateInvoiceUseCase @Inject constructor(
     private fun calculateDaysBetween(start: Date, end: Date): Int {
         val diffInMillis = end.time - start.time
         return (diffInMillis / (1000 * 60 * 60 * 24)).toInt()
+    }
+
+    private fun determineStatus(
+        amountRemaining: Double,
+        amountPaid: Double,
+        dueDate: Date,
+        today: Date
+    ): String {
+        if (amountRemaining <= 0.0) return "paid"
+        if (dueDate.before(today)) return "overdue"
+        if (amountPaid > 0.0) return "partial"
+        return "active"
     }
 }

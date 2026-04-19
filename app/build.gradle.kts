@@ -96,6 +96,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
+    // Preferences / app settings
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
     // Testing & Debugging
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

@@ -1,18 +1,18 @@
 package com.app.softec.ui.screens.splash
 
-import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.keyframes
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.StartOffset
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -24,12 +24,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
-import com.airbnb.lottie.compose.LottieAnimation
-import com.airbnb.lottie.compose.LottieCompositionSpec
-import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieComposition
 import com.app.softec.R
 import kotlinx.coroutines.delay
 
@@ -47,26 +45,13 @@ fun HackathonSplashScreen(
         }
     }
 
-    val composition by rememberLottieComposition(
-        spec = LottieCompositionSpec.RawRes(R.raw.splash_pulse)
-    )
-    val progress by animateLottieCompositionAsState(
-        composition = composition,
-        iterations = 1,
-        speed = 1f
-    )
-
-    LaunchedEffect(progress, composition) {
-        if (composition != null && progress >= 0.99f) {
-            completeOnce()
-        }
-    }
-
-    // Safety net so splash cannot block startup if animation resource fails to load.
+    // Keep the splash visible briefly while initial session checks resolve.
     LaunchedEffect(Unit) {
         delay(2200)
         completeOnce()
     }
+
+    val loadingTransition = rememberInfiniteTransition(label = "loading-dots")
 
     Box(
         modifier = modifier
@@ -78,32 +63,40 @@ fun HackathonSplashScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            if (composition != null) {
-                LottieAnimation(
-                    composition = composition,
-                    progress = { progress },
-                    modifier = Modifier.size(220.dp)
-                )
-            } else {
-                val transition = rememberInfiniteTransition(label = "splash-fallback")
-                val scale by transition.animateFloat(
-                    initialValue = 0.9f,
-                    targetValue = 1.1f,
-                    animationSpec = infiniteRepeatable(
-                        animation = tween(durationMillis = 700),
-                        repeatMode = RepeatMode.Reverse
-                    ),
-                    label = "fallback-scale"
-                )
+            Icon(
+                painter = painterResource(id = R.drawable.ic_splash_logo),
+                contentDescription = null,
+                tint = Color.Unspecified,
+                modifier = Modifier.size(132.dp)
+            )
 
-                Icon(
-                    imageVector = Icons.Filled.Bolt,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .size(96.dp)
-                        .scale(scale)
-                )
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                repeat(3) { dotIndex ->
+                    val alpha by loadingTransition.animateFloat(
+                        initialValue = 0.25f,
+                        targetValue = 1f,
+                        animationSpec = infiniteRepeatable(
+                            animation = keyframes {
+                                durationMillis = 900
+                                0.25f at 0
+                                1f at 300
+                                0.25f at 900
+                            },
+                            initialStartOffset = StartOffset(offsetMillis = dotIndex * 150)
+                        ),
+                        label = "dot-alpha-$dotIndex"
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = alpha))
+                    )
+                }
             }
 
             Text(

@@ -4,15 +4,12 @@ import com.app.softec.data.auth.AuthRepository
 import com.app.softec.data.auth.FirebaseAuthRepository
 import com.app.softec.data.remote.storage.FirebaseStorageManager
 import com.app.softec.data.remote.storage.StorageManager
-import com.app.softec.data.repository.AccountRepository
+import com.app.softec.data.repository.DataStoreSettingsRepository
 import com.app.softec.data.repository.DefaultSyncItemRepository
-import com.app.softec.data.repository.FollowUpRepository
-import com.app.softec.data.repository.PaymentRepository
 import com.app.softec.data.repository.SyncItemRepository
-import com.app.softec.data.repository.SyncRepository
+import com.app.softec.domain.repository.SettingsRepository
 import dagger.Binds
 import dagger.Module
-import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
@@ -32,26 +29,9 @@ abstract class RepositoryModule {
     @Binds
     @Singleton
     abstract fun bindSyncItemRepository(impl: DefaultSyncItemRepository): SyncItemRepository
-}
 
-@Module
-@InstallIn(SingletonComponent::class)
-object DataRepositoryModule {
-    
+    @Binds
     @Singleton
-    @Provides
-    fun provideAccountRepository(impl: AccountRepository): AccountRepository = impl
-    
-    @Singleton
-    @Provides
-    fun provideFollowUpRepository(impl: FollowUpRepository): FollowUpRepository = impl
-    
-    @Singleton
-    @Provides
-    fun providePaymentRepository(impl: PaymentRepository): PaymentRepository = impl
-    
-    @Singleton
-    @Provides
-    fun provideSyncRepository(impl: SyncRepository): SyncRepository = impl
+    abstract fun bindSettingsRepository(impl: DataStoreSettingsRepository): SettingsRepository
 }
 

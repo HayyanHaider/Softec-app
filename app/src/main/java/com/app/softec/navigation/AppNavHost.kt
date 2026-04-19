@@ -1,9 +1,10 @@
 package com.app.softec.navigation
 
-import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.animation.EnterTransition
+import androidx.compose.animation.ExitTransition
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -11,7 +12,6 @@ import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -36,14 +36,19 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
-import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.core.ui.components.StandardScaffold
 import com.app.softec.ui.screens.auth.AuthScreen
 import com.app.softec.ui.screens.auth.SessionState
 import com.app.softec.ui.screens.auth.SessionViewModel
 import com.app.softec.ui.screens.home.HomeDataScreen
+import com.app.softec.ui.screens.invoice.InvoiceDetailScreen
+import com.app.softec.ui.screens.invoice.InvoiceEditorScreen
+import com.app.softec.ui.screens.invoice.InvoiceFollowUpScreen
+import com.app.softec.ui.screens.invoice.InvoiceListScreen
+import com.app.softec.ui.screens.settings.ReminderTemplatesScreen
+import com.app.softec.ui.screens.settings.SettingsScreen
+import com.app.softec.ui.screens.settings.SettingsViewModel
 import com.app.softec.ui.screens.splash.HackathonSplashScreen
-import com.app.softec.ui.theme.spacing
 
 private data class TopLevelDestination(
     val screen: Screen,
@@ -73,10 +78,14 @@ private val topLevelDestinations = listOf(
 fun AppNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
-    startDestination: Screen = Screen.Splash
+    startDestination: Screen = Screen.Splash,
+    settingsViewModel: SettingsViewModel? = null
 ) {
+    val resolvedSettingsViewModel = settingsViewModel ?: hiltViewModel<SettingsViewModel>()
     val sessionViewModel: SessionViewModel = hiltViewModel()
     val sessionState by sessionViewModel.sessionState.collectAsState()
+    val currentUserProfile by sessionViewModel.currentUserProfile.collectAsState()
+    val settingsState by resolvedSettingsViewModel.uiState.collectAsState()
     val navActions = remember(navController) { NavigationActions(navController) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
@@ -134,7 +143,11 @@ fun AppNavHost(
     NavHost(
         navController = navController,
         startDestination = startDestination,
-        modifier = modifier
+        modifier = modifier,
+        enterTransition = { EnterTransition.None },
+        exitTransition = { ExitTransition.None },
+        popEnterTransition = { EnterTransition.None },
+        popExitTransition = { ExitTransition.None }
     ) {
         composable<Screen.Splash> {
             HackathonSplashScreen(
@@ -172,11 +185,19 @@ fun AppNavHost(
                 currentDestination = currentDestination,
                 onSelectTab = navActions::navigateToBottomTab
             ) { innerPadding ->
-                TabPlaceholder(
+                InvoiceListScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    message = "Explore ideas, tasks, and experiments."
+                    onAddInvoice = { customerId ->
+                        navActions.navigateTo(Screen.AddInvoice(customerId))
+                    },
+                    onInvoiceClick = { accountId ->
+                        navActions.navigateTo(Screen.InvoiceDetail(accountId))
+                    },
+                    onEditInvoice = { accountId ->
+                        navActions.navigateTo(Screen.EditInvoice(accountId))
+                    }
                 )
             }
         }
@@ -186,11 +207,33 @@ fun AppNavHost(
                 currentDestination = currentDestination,
                 onSelectTab = navActions::navigateToBottomTab
             ) { innerPadding ->
-                SettingsContent(
+                SettingsScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
+                    profile = currentUserProfile,
+                    state = settingsState,
+                    onToggleDarkMode = resolvedSettingsViewModel::setDarkModeEnabled,
+                    onToggleCloudSync = resolvedSettingsViewModel::setCloudSyncEnabled,
+                    onOpenReminderTemplates = {
+                        navActions.navigateTo(Screen.ReminderTemplates)
+                    },
                     onSignOut = sessionViewModel::signOut
+                )
+            }
+        }
+        composable<Screen.ReminderTemplates> {
+            StandardScaffold(
+                title = "Update Reminders",
+                showBackButton = true,
+                onNavigateBack = navActions::navigateBack
+            ) { innerPadding ->
+                ReminderTemplatesScreen(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding),
+                    templates = settingsState.reminderTemplates,
+                    onSaveTemplates = resolvedSettingsViewModel::updateReminderTemplates
                 )
             }
         }
@@ -225,6 +268,40 @@ fun AppNavHost(
                 }
             }
         }
+        composable<Screen.InvoiceDetail> { backStackEntry ->
+            val route: Screen.InvoiceDetail = backStackEntry.toRoute()
+            InvoiceDetailScreen(
+                invoiceId = route.id,
+                onNavigateBack = navActions::navigateBack,
+                onFollowUpClick = { accountId ->
+                    navActions.navigateTo(Screen.InvoiceFollowUp(accountId))
+                }
+            )
+        }
+        composable<Screen.InvoiceFollowUp> { backStackEntry ->
+            val route: Screen.InvoiceFollowUp = backStackEntry.toRoute()
+            InvoiceFollowUpScreen(
+                invoiceId = route.id,
+                onNavigateBack = navActions::navigateBack,
+                onFollowUpSaved = navActions::navigateBack
+            )
+        }
+        composable<Screen.AddInvoice> {
+            val route: Screen.AddInvoice = it.toRoute()
+            InvoiceEditorScreen(
+                invoiceId = null,
+                selectedCustomerId = route.customerId,
+                onNavigateBack = navActions::navigateBack
+            )
+        }
+        composable<Screen.EditInvoice> { backStackEntry ->
+            val route: Screen.EditInvoice = backStackEntry.toRoute()
+            InvoiceEditorScreen(
+                invoiceId = route.id,
+                selectedCustomerId = null,
+                onNavigateBack = navActions::navigateBack
+            )
+        }
     }
 }
 
@@ -233,10 +310,12 @@ private fun TopLevelScreen(
     title: String,
     currentDestination: NavDestination?,
     onSelectTab: (Screen) -> Unit,
+    topBarActions: @Composable RowScope.() -> Unit = {},
     content: @Composable (PaddingValues) -> Unit
 ) {
     StandardScaffold(
         title = title,
+        topBarActions = topBarActions,
         bottomBar = {
             NavigationBar {
                 topLevelDestinations.forEach { destination ->
@@ -269,32 +348,6 @@ private fun TabPlaceholder(
     }
 }
 
-@Composable
-private fun SettingsContent(
-    modifier: Modifier = Modifier,
-    onSignOut: () -> Unit
-) {
-    Column(
-        modifier = modifier
-            .padding(MaterialTheme.spacing.medium),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.medium)
-    ) {
-        Text(
-            text = "You are signed in.",
-            style = MaterialTheme.typography.bodyLarge
-        )
-        Text(
-            text = "Use this to end your session on this device.",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        PrimaryButton(
-            text = "Sign out",
-            onClick = onSignOut
-        )
-    }
-}
-
 private fun NavDestination?.isTopLevelDestinationSelected(screen: Screen): Boolean {
     return when (screen) {
         Screen.Customers -> this?.hierarchy?.any { it.hasRoute<Screen.Customers>() } == true
@@ -314,7 +367,12 @@ private fun NavDestination?.isProtectedDestination(): Boolean {
         it.hasRoute<Screen.Customers>() ||
             it.hasRoute<Screen.Invoices>() ||
             it.hasRoute<Screen.Settings>() ||
+            it.hasRoute<Screen.ReminderTemplates>() ||
             it.hasRoute<Screen.Profile>() ||
-            it.hasRoute<Screen.Details>()
+            it.hasRoute<Screen.Details>() ||
+            it.hasRoute<Screen.InvoiceDetail>() ||
+            it.hasRoute<Screen.InvoiceFollowUp>() ||
+            it.hasRoute<Screen.AddInvoice>() ||
+            it.hasRoute<Screen.EditInvoice>()
     } == true
 }
