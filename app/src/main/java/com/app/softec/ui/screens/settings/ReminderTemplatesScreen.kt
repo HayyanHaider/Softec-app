@@ -51,7 +51,10 @@ fun ReminderTemplatesScreen(
             modifier = Modifier.fillMaxWidth(),
             value = friendlyTemplate,
             onValueChange = {
-                friendlyTemplate = it
+                friendlyTemplate = keepPlaceholdersImmutable(
+                    previousValue = friendlyTemplate,
+                    candidateValue = it
+                )
                 remindersUpdated = false
             },
             label = { Text("Friendly") },
@@ -62,7 +65,10 @@ fun ReminderTemplatesScreen(
             modifier = Modifier.fillMaxWidth(),
             value = standardTemplate,
             onValueChange = {
-                standardTemplate = it
+                standardTemplate = keepPlaceholdersImmutable(
+                    previousValue = standardTemplate,
+                    candidateValue = it
+                )
                 remindersUpdated = false
             },
             label = { Text("Standard") },
@@ -73,7 +79,10 @@ fun ReminderTemplatesScreen(
             modifier = Modifier.fillMaxWidth(),
             value = urgentTemplate,
             onValueChange = {
-                urgentTemplate = it
+                urgentTemplate = keepPlaceholdersImmutable(
+                    previousValue = urgentTemplate,
+                    candidateValue = it
+                )
                 remindersUpdated = false
             },
             label = { Text("Urgent") },
@@ -96,5 +105,24 @@ fun ReminderTemplatesScreen(
                 color = MaterialTheme.colorScheme.primary
             )
         }
+    }
+}
+
+private val placeholderRegex = Regex("\\{[^{}]+\\}")
+
+private fun keepPlaceholdersImmutable(
+    previousValue: String,
+    candidateValue: String
+): String {
+    val previousPlaceholders = placeholderRegex.findAll(previousValue)
+        .map { it.value }
+        .toList()
+    val candidatePlaceholders = placeholderRegex.findAll(candidateValue)
+        .map { it.value }
+        .toList()
+    return if (candidatePlaceholders == previousPlaceholders) {
+        candidateValue
+    } else {
+        previousValue
     }
 }
