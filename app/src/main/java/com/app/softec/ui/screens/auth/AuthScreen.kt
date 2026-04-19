@@ -30,7 +30,6 @@ import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.credentials.CredentialManager
 import androidx.credentials.CustomCredential
 import androidx.credentials.GetCredentialRequest
-import com.app.softec.R
 import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.core.ui.components.StyledTextField
 import com.app.softec.ui.theme.spacing
@@ -182,9 +181,13 @@ fun AuthScreen(
             onClick = {
                 scope.launch {
                     val idToken = runCatching {
+                        val webClientId = resolveGoogleWebClientId(context)
+                            ?: throw IllegalStateException(
+                                "Google sign-in is not configured. Add a valid Web client ID in Firebase."
+                            )
                         requestGoogleIdToken(
                             credentialManager = credentialManager,
-                            serverClientId = context.getString(R.string.default_web_client_id),
+                            serverClientId = webClientId,
                             context = context
                         )
                     }.getOrElse { throwable ->
@@ -237,4 +240,17 @@ private suspend fun requestGoogleIdToken(
     }
 
     throw IllegalStateException("Google account credential was not returned")
+}
+
+private fun resolveGoogleWebClientId(context: android.content.Context): String? {
+    val resourceId = context.resources.getIdentifier(
+        "default_web_client_id",
+        "string",
+        context.packageName
+    )
+    if (resourceId == 0) {
+        return null
+    }
+    val value = context.getString(resourceId).trim()
+    return value.takeIf { it.endsWith(".apps.googleusercontent.com") }
 }
