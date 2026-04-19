@@ -37,11 +37,17 @@ class DataStoreSettingsRepository @Inject constructor(
         ReminderTemplates(
             friendly = prefs[FRIENDLY_TEMPLATE] ?: ReminderTemplates.DEFAULT_FRIENDLY,
             standard = prefs[STANDARD_TEMPLATE] ?: ReminderTemplates.DEFAULT_STANDARD,
-            urgent = prefs[URGENT_TEMPLATE] ?: ReminderTemplates.DEFAULT_URGENT
+            urgent = prefs[URGENT_TEMPLATE] ?: ReminderTemplates.DEFAULT_URGENT,
+            useAIGeneration = prefs[USE_AI_GENERATION] ?: false,
+            aiPromptTemplate = prefs[AI_PROMPT_TEMPLATE] ?: ReminderTemplates.DEFAULT_AI_PROMPT
         )
     }
     override val currencyPrefix: Flow<String> = context.settingsDataStore.data.map { prefs ->
         prefs[CURRENCY_PREFIX] ?: DEFAULT_CURRENCY_PREFIX
+    }
+
+    override val geminiApiKey: Flow<String?> = context.settingsDataStore.data.map { prefs ->
+        prefs[GEMINI_API_KEY]
     }
 
     override suspend fun setDarkModeEnabled(isEnabled: Boolean) {
@@ -61,6 +67,14 @@ class DataStoreSettingsRepository @Inject constructor(
             prefs[FRIENDLY_TEMPLATE] = templates.friendly
             prefs[STANDARD_TEMPLATE] = templates.standard
             prefs[URGENT_TEMPLATE] = templates.urgent
+            prefs[USE_AI_GENERATION] = templates.useAIGeneration
+            prefs[AI_PROMPT_TEMPLATE] = templates.aiPromptTemplate
+        }
+    }
+
+    override suspend fun setGeminiApiKey(apiKey: String) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[GEMINI_API_KEY] = apiKey
         }
     }
 
@@ -88,6 +102,9 @@ class DataStoreSettingsRepository @Inject constructor(
         val FRIENDLY_TEMPLATE = stringPreferencesKey("friendly_reminder_template")
         val STANDARD_TEMPLATE = stringPreferencesKey("standard_reminder_template")
         val URGENT_TEMPLATE = stringPreferencesKey("urgent_reminder_template")
+        val USE_AI_GENERATION = booleanPreferencesKey("use_ai_generation")
+        val AI_PROMPT_TEMPLATE = stringPreferencesKey("ai_prompt_template")
+        val GEMINI_API_KEY = stringPreferencesKey("gemini_api_key")
         val CURRENCY_PREFIX = stringPreferencesKey("currency_prefix")
     }
 }
