@@ -40,6 +40,9 @@ class DataStoreSettingsRepository @Inject constructor(
             urgent = prefs[URGENT_TEMPLATE] ?: ReminderTemplates.DEFAULT_URGENT
         )
     }
+    override val currencyPrefix: Flow<String> = context.settingsDataStore.data.map { prefs ->
+        prefs[CURRENCY_PREFIX] ?: DEFAULT_CURRENCY_PREFIX
+    }
 
     override suspend fun setDarkModeEnabled(isEnabled: Boolean) {
         context.settingsDataStore.edit { prefs ->
@@ -61,16 +64,30 @@ class DataStoreSettingsRepository @Inject constructor(
         }
     }
 
+    override suspend fun setCurrencyPrefix(prefix: String) {
+        context.settingsDataStore.edit { prefs ->
+            prefs[CURRENCY_PREFIX] = prefix
+        }
+    }
+
+    override suspend fun clearLocalSettings() {
+        context.settingsDataStore.edit { prefs ->
+            prefs.clear()
+        }
+    }
+
     private fun defaultDarkModeEnabled(): Boolean {
         val nightModeFlags = context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
         return nightModeFlags == Configuration.UI_MODE_NIGHT_YES
     }
 
     private companion object {
+        const val DEFAULT_CURRENCY_PREFIX = "$"
         val DARK_MODE_ENABLED = booleanPreferencesKey("dark_mode_enabled")
         val CLOUD_SYNC_ENABLED = booleanPreferencesKey("cloud_sync_enabled")
         val FRIENDLY_TEMPLATE = stringPreferencesKey("friendly_reminder_template")
         val STANDARD_TEMPLATE = stringPreferencesKey("standard_reminder_template")
         val URGENT_TEMPLATE = stringPreferencesKey("urgent_reminder_template")
+        val CURRENCY_PREFIX = stringPreferencesKey("currency_prefix")
     }
 }

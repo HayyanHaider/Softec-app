@@ -10,10 +10,12 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -34,6 +36,7 @@ fun SettingsScreen(
     state: SettingsUiState,
     onToggleDarkMode: (Boolean) -> Unit,
     onToggleCloudSync: (Boolean) -> Unit,
+    onCurrencyPrefixChange: (String) -> Unit,
     onOpenReminderTemplates: () -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -85,6 +88,11 @@ fun SettingsScreen(
                 onCheckedChange = onToggleCloudSync
             )
 
+            CurrencyPrefixCard(
+                prefix = state.currencyPrefix,
+                onPrefixChange = onCurrencyPrefixChange
+            )
+
             SettingActionCard(
                 title = "Update Reminders",
                 onClick = onOpenReminderTemplates
@@ -99,6 +107,39 @@ fun SettingsScreen(
             containerColor = MaterialTheme.colorScheme.error,
             contentColor = MaterialTheme.colorScheme.onError
         )
+    }
+}
+
+@Composable
+private fun CurrencyPrefixCard(
+    prefix: String,
+    onPrefixChange: (String) -> Unit
+) {
+    Card(modifier = Modifier.fillMaxWidth()) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(MaterialTheme.spacing.medium),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.small)
+        ) {
+            Text(
+                text = "Currency Prefix",
+                style = MaterialTheme.typography.titleMedium
+            )
+            OutlinedTextField(
+                modifier = Modifier.widthIn(max = MaterialTheme.spacing.extraLarge * 4),
+                value = prefix,
+                onValueChange = { onPrefixChange(it.take(3)) },
+                singleLine = true,
+                label = { Text("Prefix (max 3)") },
+                isError = prefix.isBlank(),
+                supportingText = {
+                    if (prefix.isBlank()) {
+                        Text("Currency prefix is required")
+                    }
+                }
+            )
+        }
     }
 }
 

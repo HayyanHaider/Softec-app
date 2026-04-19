@@ -40,16 +40,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import com.app.softec.core.ui.formatCurrencyWithPrefix
 import com.app.softec.core.ui.components.EmptyState
 import com.app.softec.core.ui.components.PrimaryButton
 import com.app.softec.domain.usecase.InvoiceFilterType
 import com.app.softec.ui.theme.spacing
-import java.text.NumberFormat
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun InvoiceListScreen(
     modifier: Modifier = Modifier,
+    currencyPrefix: String,
     onAddInvoice: (String) -> Unit,
     onInvoiceClick: (String) -> Unit,
     onEditInvoice: (String) -> Unit,
@@ -318,7 +319,8 @@ fun InvoiceListScreen(
                     item {
                         InvoiceSummaryCard(
                             invoices = state.invoices,
-                            totalOutstanding = state.totalOutstanding
+                            totalOutstanding = state.totalOutstanding,
+                            currencyPrefix = currencyPrefix
                         )
                     }
 
@@ -356,6 +358,7 @@ fun InvoiceListScreen(
                                 },
                                 onEdit = { onEditInvoice(invoice.account.id) },
                                 onDelete = { invoiceToDelete = invoice },
+                                currencyPrefix = currencyPrefix,
                                 selectionMode = selectionMode,
                                 selected = isSelected,
                                 onSelectionToggle = {
@@ -377,7 +380,8 @@ fun InvoiceListScreen(
 @Composable
 private fun InvoiceSummaryCard(
     invoices: List<InvoiceListItemUi>,
-    totalOutstanding: Double
+    totalOutstanding: Double,
+    currencyPrefix: String
 ) {
     val actionableInvoices = invoices.filter { it.account.amountRemaining > 0.0 }
     val overdueCount = actionableInvoices.count {
@@ -407,7 +411,7 @@ private fun InvoiceSummaryCard(
                 InvoiceSnapshotPill(
                     modifier = Modifier.weight(1f),
                     label = "Outstanding",
-                    value = NumberFormat.getCurrencyInstance().format(totalOutstanding),
+                    value = formatCurrencyWithPrefix(totalOutstanding, currencyPrefix),
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer
                 )

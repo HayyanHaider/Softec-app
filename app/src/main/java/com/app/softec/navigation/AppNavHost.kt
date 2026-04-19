@@ -215,6 +215,7 @@ fun AppNavHost(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
+                    currencyPrefix = settingsState.currencyPrefix,
                     onAddInvoice = { customerId ->
                         navActions.navigateTo(Screen.AddInvoice(customerId))
                     },
@@ -241,6 +242,7 @@ fun AppNavHost(
                     state = settingsState,
                     onToggleDarkMode = resolvedSettingsViewModel::setDarkModeEnabled,
                     onToggleCloudSync = resolvedSettingsViewModel::setCloudSyncEnabled,
+                    onCurrencyPrefixChange = resolvedSettingsViewModel::setCurrencyPrefix,
                     onOpenReminderTemplates = {
                         navActions.navigateTo(Screen.ReminderTemplates)
                     },
@@ -282,6 +284,7 @@ fun AppNavHost(
             CustomerDetailScreen(
                 customerId = details.id,
                 onNavigateBack = navActions::navigateBack,
+                currencyPrefix = settingsState.currencyPrefix,
                 onOpenInvoice = { invoiceId ->
                     navActions.navigateTo(Screen.InvoiceDetail(invoiceId))
                 }
@@ -292,6 +295,7 @@ fun AppNavHost(
             InvoiceDetailScreen(
                 invoiceId = route.id,
                 onNavigateBack = navActions::navigateBack,
+                currencyPrefix = settingsState.currencyPrefix,
                 onFollowUpClick = { accountId ->
                     navActions.navigateTo(Screen.InvoiceFollowUp(accountId))
                 }

@@ -3,12 +3,16 @@ package com.app.softec.ui.screens.auth
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.app.softec.data.auth.AuthRepository
+import com.app.softec.data.local.AppDatabase
+import com.app.softec.domain.repository.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 sealed interface SessionState {
     data object Checking : SessionState
@@ -18,7 +22,9 @@ sealed interface SessionState {
 
 @HiltViewModel
 class SessionViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val appDatabase: AppDatabase,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     private val _sessionState = MutableStateFlow<SessionState>(SessionState.Checking)
@@ -59,6 +65,14 @@ class SessionViewModel @Inject constructor(
     fun signOut() {
         viewModelScope.launch {
             authRepository.signOut()
+            clearLocalStorage()
+        }
+    }
+
+    private suspend fun clearLocalStorage() {
+        withContext(Dispatchers.IO) {
+            appDatabase.clearAllTables()
+            settingsRepository.clearLocalSettings()
         }
     }
 }
