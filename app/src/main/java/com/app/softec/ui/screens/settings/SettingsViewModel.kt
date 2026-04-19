@@ -79,6 +79,9 @@ class SettingsViewModel @Inject constructor(
     fun setGeminiApiKey(apiKey: String) {
         viewModelScope.launch {
             settingsRepository.setGeminiApiKey(apiKey)
+        }
+    }
+
     fun setCurrencyPrefix(prefix: String) {
         viewModelScope.launch {
             settingsRepository.setCurrencyPrefix(prefix.take(3))
