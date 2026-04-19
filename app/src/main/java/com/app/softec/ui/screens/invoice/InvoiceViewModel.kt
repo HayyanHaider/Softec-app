@@ -71,6 +71,8 @@ data class FollowUpUiState(
     val contactNumber: String = "",
     val customerEmail: String? = null,
     val selectedChannel: FollowUpContactChannel = FollowUpContactChannel.WHATSAPP,
+    val selectedIntervalDays: Int? = null,
+    val isCustomDateSelected: Boolean = false,
     val suggestedMessage: String = "",
     val draftMessage: String = "",
     val nextFollowUpDate: Date? = null,
@@ -277,6 +279,8 @@ class InvoiceViewModel @Inject constructor(
                     contactNumber = contactNumber,
                     customerEmail = customerEmail,
                     selectedChannel = resolveDefaultFollowUpChannel(contactNumber, customerEmail),
+                    selectedIntervalDays = null,
+                    isCustomDateSelected = false,
                     suggestedMessage = suggestedMessage,
                     draftMessage = suggestedMessage,
                     nextFollowUpDate = nextFollowUpDate,
@@ -310,7 +314,23 @@ class InvoiceViewModel @Inject constructor(
     fun updateFollowUpInterval(days: Int?) {
         val account = followUpAccount ?: return
         val nextDate = calculateNextFollowUpUseCase(account, days)
-        _followUpState.update { it.copy(nextFollowUpDate = nextDate) }
+        _followUpState.update {
+            it.copy(
+                selectedIntervalDays = days,
+                isCustomDateSelected = false,
+                nextFollowUpDate = nextDate
+            )
+        }
+    }
+
+    fun updateFollowUpDate(date: Date) {
+        _followUpState.update {
+            it.copy(
+                selectedIntervalDays = null,
+                isCustomDateSelected = true,
+                nextFollowUpDate = date
+            )
+        }
     }
 
     fun submitFollowUp() {

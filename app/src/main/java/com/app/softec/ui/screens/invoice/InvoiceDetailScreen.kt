@@ -13,6 +13,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -123,11 +124,7 @@ private fun InvoiceDetailContent(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.SemiBold
                 )
-                Text(
-                    text = "Status: ${account.status.uppercase()}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                InvoiceDetailStatusPill(status = account.status)
                 Text(
                     text = "Due Date: ${account.dueDate.toBusinessDate()}",
                     style = MaterialTheme.typography.bodyMedium,
@@ -158,6 +155,33 @@ private fun InvoiceDetailContent(
         PrimaryButton(
             text = "Follow Up",
             onClick = onFollowUpClick
+        )
+    }
+}
+
+@Composable
+private fun InvoiceDetailStatusPill(status: String) {
+    val normalizedStatus = status.lowercase()
+    val (containerColor, contentColor) = when (normalizedStatus) {
+        "paid" -> MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+        "overdue" -> MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+        "partial" -> MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
+        else -> MaterialTheme.colorScheme.primaryContainer to MaterialTheme.colorScheme.onPrimaryContainer
+    }
+
+    Surface(
+        color = containerColor,
+        contentColor = contentColor,
+        shape = MaterialTheme.shapes.large
+    ) {
+        Text(
+            text = normalizedStatus.uppercase(),
+            style = MaterialTheme.typography.labelMedium,
+            fontWeight = FontWeight.SemiBold,
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.small,
+                vertical = MaterialTheme.spacing.extraSmall
+            )
         )
     }
 }
