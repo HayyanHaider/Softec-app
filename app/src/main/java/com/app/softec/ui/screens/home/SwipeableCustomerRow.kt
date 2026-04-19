@@ -22,7 +22,11 @@ fun SwipeableCustomerRow(
     item: SyncItemEntity,
     onOpenDetails: (String) -> Unit,
     onEdit: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onToggleSelection: () -> Unit,
+    onStartSelection: () -> Unit
 ) {
     val dismissState = androidx.compose.material3.rememberSwipeToDismissBoxState(
         confirmValueChange = { dismissValue ->
@@ -37,7 +41,8 @@ fun SwipeableCustomerRow(
 
     SwipeToDismissBox(
         state = dismissState,
-        enableDismissFromEndToStart = true,
+        enableDismissFromStartToEnd = !isSelectionMode,
+        enableDismissFromEndToStart = !isSelectionMode,
         backgroundContent = {
             Row(
                 modifier = Modifier
@@ -59,6 +64,13 @@ fun SwipeableCustomerRow(
             }
         }
     ) {
-        SyncItemCard(item = item, onOpenDetails = onOpenDetails)
+        SyncItemCard(
+            item = item,
+            onOpenDetails = onOpenDetails,
+            isSelectionMode = isSelectionMode,
+            isSelected = isSelected,
+            onToggleSelection = onToggleSelection,
+            onStartSelection = onStartSelection
+        )
     }
 }

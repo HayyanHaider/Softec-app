@@ -1,6 +1,8 @@
 package com.app.softec.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -11,6 +13,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -26,14 +29,36 @@ import com.app.softec.data.local.entity.SyncItemEntity
 import com.app.softec.ui.theme.spacing
 
 @Composable
+@OptIn(ExperimentalFoundationApi::class)
 fun SyncItemCard(
     item: SyncItemEntity,
-    onOpenDetails: (String) -> Unit
+    onOpenDetails: (String) -> Unit,
+    isSelectionMode: Boolean,
+    isSelected: Boolean,
+    onToggleSelection: () -> Unit,
+    onStartSelection: () -> Unit
 ) {
     val customerInitials = getInitials(item.title)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(
+                onClick = {
+                    if (isSelectionMode) {
+                        onToggleSelection()
+                    } else {
+                        onOpenDetails(item.id)
+                    }
+                },
+                onLongClick = {
+                    if (isSelectionMode) {
+                        onToggleSelection()
+                    } else {
+                        onStartSelection()
+                    }
+                }
+            ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceContainerLow
         )
@@ -44,6 +69,14 @@ fun SyncItemCard(
                 .padding(MaterialTheme.spacing.medium),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            if (isSelectionMode) {
+                Checkbox(
+                    checked = isSelected,
+                    onCheckedChange = { onToggleSelection() }
+                )
+                Spacer(modifier = Modifier.size(MaterialTheme.spacing.small))
+            }
+
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -72,14 +105,16 @@ fun SyncItemCard(
                 }
             }
 
-            IconButton(
-                modifier = Modifier.padding(end = 8.dp),
-                onClick = { onOpenDetails(item.id) }
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                    contentDescription = "Open customer details"
-                )
+            if (!isSelectionMode) {
+                IconButton(
+                    modifier = Modifier.padding(end = 8.dp),
+                    onClick = { onOpenDetails(item.id) }
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        contentDescription = "Open customer details"
+                    )
+                }
             }
         }
     }

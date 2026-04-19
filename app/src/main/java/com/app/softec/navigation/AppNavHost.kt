@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Text
@@ -40,6 +42,7 @@ import com.app.softec.core.ui.components.StandardScaffold
 import com.app.softec.ui.screens.auth.AuthScreen
 import com.app.softec.ui.screens.auth.SessionState
 import com.app.softec.ui.screens.auth.SessionViewModel
+import com.app.softec.ui.screens.home.CustomerDetailScreen
 import com.app.softec.ui.screens.home.HomeDataScreen
 import com.app.softec.ui.screens.invoice.InvoiceDetailScreen
 import com.app.softec.ui.screens.invoice.InvoiceEditorScreen
@@ -91,6 +94,9 @@ fun AppNavHost(
     val currentDestination = navBackStackEntry?.destination
     var splashFinished by rememberSaveable { mutableStateOf(false) }
     var splashNavigationHandled by rememberSaveable { mutableStateOf(false) }
+    var isCustomerSelectionMode by rememberSaveable { mutableStateOf(false) }
+    var selectedCustomersCount by rememberSaveable { mutableStateOf(0) }
+    var onDeleteSelectedCustomers by remember { mutableStateOf<(() -> Unit)?>(null) }
 
     LaunchedEffect(splashFinished, sessionState, splashNavigationHandled) {
         if (!splashFinished || splashNavigationHandled) {
@@ -169,13 +175,33 @@ fun AppNavHost(
             TopLevelScreen(
                 title = "Customers",
                 currentDestination = currentDestination,
-                onSelectTab = navActions::navigateToBottomTab
+                onSelectTab = navActions::navigateToBottomTab,
+                topBarActions = {
+                    if (isCustomerSelectionMode) {
+                        IconButton(
+                            onClick = { onDeleteSelectedCustomers?.invoke() },
+                            enabled = selectedCustomersCount > 0
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete selected customers"
+                            )
+                        }
+                    }
+                }
             ) { innerPadding ->
                 HomeDataScreen(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding),
-                    onOpenDetails = { itemId -> navActions.navigateTo(Screen.Details(itemId)) }
+                    onOpenDetails = { itemId -> navActions.navigateTo(Screen.Details(itemId)) },
+                    onSelectionStateChange = { isSelectionMode, selectedCount ->
+                        isCustomerSelectionMode = isSelectionMode
+                        selectedCustomersCount = selectedCount
+                    },
+                    onRegisterDeleteSelectedAction = { action ->
+                        onDeleteSelectedCustomers = action
+                    }
                 )
             }
         }
@@ -253,20 +279,13 @@ fun AppNavHost(
         }
         composable<Screen.Details> { backStackEntry ->
             val details: Screen.Details = backStackEntry.toRoute()
-            StandardScaffold(
-                title = "Details",
-                showBackButton = true,
-                onNavigateBack = navActions::navigateBack
-            ) { innerPadding ->
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(innerPadding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(text = "Details ID: ${details.id}")
+            CustomerDetailScreen(
+                customerId = details.id,
+                onNavigateBack = navActions::navigateBack,
+                onOpenInvoice = { invoiceId ->
+                    navActions.navigateTo(Screen.InvoiceDetail(invoiceId))
                 }
-            }
+            )
         }
         composable<Screen.InvoiceDetail> { backStackEntry ->
             val route: Screen.InvoiceDetail = backStackEntry.toRoute()

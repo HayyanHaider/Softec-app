@@ -128,6 +128,21 @@ class HomeViewModel @Inject constructor(
         }
     }
 
+    fun deleteCustomers(items: List<SyncItemEntity>) {
+        if (items.isEmpty()) {
+            return
+        }
+        viewModelScope.launch {
+            items.forEach { item ->
+                val result = syncItemRepository.delete(item)
+                if (result is Resource.Error) {
+                    _uiState.value = UiState.Error(result.message)
+                    return@launch
+                }
+            }
+        }
+    }
+
     fun syncNow() {
         viewModelScope.launch {
             val result = syncItemRepository.refreshFromRemote()
